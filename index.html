@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Квест-календарь | Бронирование слотов</title>
+    <title>Квест-календарь | JSON База данных внизу</title>
     <style>
         * {
             box-sizing: border-box;
@@ -19,7 +19,7 @@
         }
 
         .schedule-container {
-            max-width: 1500px;
+            max-width: 1400px;
             margin: 0 auto;
             background: rgba(255,255,255,0.75);
             border-radius: 2rem;
@@ -100,7 +100,6 @@
             cursor: pointer;
             font-size: 0.8rem;
             transition: all 0.2s;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
         .refresh-btn:hover {
             background-color: #eef3fc;
@@ -118,14 +117,12 @@
             cursor: pointer;
             transition: all 0.2s;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            margin-top: 1rem;
-            margin-bottom: 0.5rem;
-            display: inline-block;
+            margin-bottom: 1rem;
+            width: 100%;
         }
         .booking-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 18px rgba(0,0,0,0.2);
-            background: linear-gradient(135deg, #1e4668, #0f3552);
         }
 
         .table-wrapper {
@@ -139,13 +136,13 @@
         .schedule-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             min-width: 900px;
         }
 
         .schedule-table th {
             background: #eef3fc;
-            padding: 1rem 0.5rem;
+            padding: 0.8rem 0.4rem;
             font-weight: 700;
             color: #1e3b4f;
             border-bottom: 2px solid #cbdde9;
@@ -157,13 +154,6 @@
             font-weight: bold;
             text-align: center;
             vertical-align: middle;
-            border-right: 1px solid #cddfea;
-        }
-
-        .time-header {
-            font-size: 0.85rem;
-            font-weight: 600;
-            background: #f5f9fe;
         }
 
         .schedule-table td {
@@ -175,75 +165,50 @@
 
         .slot-cell {
             font-weight: 500;
-            cursor: default;
             transition: all 0.1s;
         }
 
         .quest-taken {
             border-radius: 16px;
             font-weight: 600;
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.4), 0 2px 4px rgba(0,0,0,0.05);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.4);
         }
 
         .free-slot {
             background-color: #fefef5;
             color: #8da0aa;
             font-style: italic;
-            font-weight: 400;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             cursor: pointer;
-            transition: all 0.2s;
         }
         .free-slot:hover {
             background-color: #e8f0fe;
             transform: scale(0.98);
-            cursor: pointer;
         }
 
-        /* цвета квестов */
-        .quest-1 { background-color: #FFB3BA; color: #6b2e3a; border-left: 4px solid #e63946; }
-        .quest-2 { background-color: #B5EAD7; color: #2c5e3f; border-left: 4px solid #2ecc71; }
-        .quest-3 { background-color: #C7E9FB; color: #1d5a7a; border-left: 4px solid #3498db; }
-        .quest-4 { background-color: #FFE5B4; color: #9b6a1a; border-left: 4px solid #f1c40f; }
-        .quest-5 { background-color: #E0BBE4; color: #5a3a6e; border-left: 4px solid #9b59b6; }
-        .quest-6 { background-color: #FBC8B5; color: #b84c2c; border-left: 4px solid #e67e22; }
+        .quest-1 { background-color: #FFB3BA; color: #6b2e3a; }
+        .quest-2 { background-color: #B5EAD7; color: #2c5e3f; }
+        .quest-3 { background-color: #C7E9FB; color: #1d5a7a; }
+        .quest-4 { background-color: #FFE5B4; color: #9b6a1a; }
+        .quest-5 { background-color: #E0BBE4; color: #5a3a6e; }
+        .quest-6 { background-color: #FBC8B5; color: #b84c2c; }
 
-        .weekday-name {
-            font-weight: 800;
-            font-size: 1rem;
-            display: block;
-        }
-        .weekday-date {
-            font-size: 0.7rem;
-            font-weight: normal;
-            color: #4f6f8a;
-        }
+        .weekday-name { font-weight: 800; font-size: 1rem; display: block; }
+        .weekday-date { font-size: 0.65rem; color: #4f6f8a; }
 
-        /* Блок управления ценами */
         .price-panel {
             background: white;
             border-radius: 1.5rem;
-            padding: 1.2rem 1.5rem;
+            padding: 1rem 1.5rem;
             box-shadow: 0 8px 18px rgba(0,0,0,0.08);
-            margin-top: 0.5rem;
-        }
-
-        .price-title {
-            font-weight: 700;
-            font-size: 1.2rem;
-            margin-bottom: 0.8rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #1f4868;
+            margin-bottom: 1.5rem;
         }
 
         .price-inputs {
             display: flex;
             flex-wrap: wrap;
-            gap: 2rem;
+            gap: 1.5rem;
             align-items: flex-end;
-            margin-bottom: 1.2rem;
         }
 
         .price-group {
@@ -254,42 +219,92 @@
 
         .price-group label {
             font-weight: 600;
-            font-size: 0.85rem;
-            color: #2c5778;
+            font-size: 0.8rem;
         }
 
         .price-input {
-            padding: 10px 14px;
-            font-size: 1rem;
+            padding: 8px 14px;
             border: 2px solid #d4e2ed;
             border-radius: 28px;
-            width: 180px;
-            font-weight: 500;
-            transition: 0.2s;
-        }
-
-        .price-input:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
+            width: 160px;
         }
 
         .save-btn {
             background: #1e6f3f;
             color: white;
             border: none;
-            padding: 10px 28px;
+            padding: 8px 24px;
             border-radius: 40px;
             font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* JSON секция внизу */
+        .json-section-bottom {
+            background: #1e2a36;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .json-header {
+            background: #0f1a24;
+            color: #7ec8e0;
+            padding: 1rem 1.2rem;
+            font-weight: bold;
             font-size: 0.9rem;
+            border-bottom: 2px solid #2c4b64;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .json-header span {
+            font-family: monospace;
+            letter-spacing: 0.5px;
+        }
+
+        .copy-json-btn {
+            background: #2c4b64;
+            border: none;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
             cursor: pointer;
             transition: 0.2s;
         }
-        .save-btn:hover {
-            background: #15803d;
+        .copy-json-btn:hover {
+            background: #3e6a8c;
         }
 
-        /* Модальное окно */
+        .json-content {
+            background: #0f1a24;
+            padding: 1rem;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', 'Fira Code', monospace;
+            font-size: 0.75rem;
+            line-height: 1.4;
+        }
+
+        .json-content pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: #cee9f0;
+        }
+
+        .json-key { color: #9cdcfe; }
+        .json-string { color: #ce9178; }
+        .json-number { color: #b5cea8; }
+        .json-boolean { color: #569cd6; }
+        .json-null { color: #569cd6; }
+
         .modal {
             display: none;
             position: fixed;
@@ -303,86 +318,24 @@
             justify-content: center;
             align-items: center;
         }
-        .modal.active {
-            display: flex;
-        }
+        .modal.active { display: flex; }
         .modal-content {
             background: white;
             border-radius: 2rem;
             max-width: 500px;
             width: 90%;
             padding: 2rem;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
-            animation: modalSlideIn 0.2s ease;
         }
-        @keyframes modalSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        .modal-content h3 {
-            font-size: 1.5rem;
-            margin-bottom: 1.5rem;
-            color: #1e4668;
-        }
-        .form-group {
-            margin-bottom: 1.2rem;
-        }
-        .form-group label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 0.4rem;
-            color: #2c5778;
-        }
-        .form-group select {
+        .form-group { margin-bottom: 1rem; }
+        .form-group select, .form-group input {
             width: 100%;
-            padding: 10px 12px;
-            border: 2px solid #d4e2ed;
+            padding: 10px;
             border-radius: 28px;
-            font-size: 1rem;
-            background: white;
-            cursor: pointer;
+            border: 2px solid #d4e2ed;
         }
-        .form-group select:focus {
-            outline: none;
-            border-color: #3b82f6;
-        }
-        .modal-buttons {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-        .btn-primary {
-            background: #1e6f3f;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 40px;
-            font-weight: bold;
-            cursor: pointer;
-            flex: 1;
-        }
-        .btn-secondary {
-            background: #e2e8f0;
-            color: #1f3b4c;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 40px;
-            font-weight: bold;
-            cursor: pointer;
-            flex: 1;
-        }
-        .btn-primary:hover {
-            background: #15803d;
-        }
-        .btn-secondary:hover {
-            background: #cbd5e1;
-        }
+        .modal-buttons { display: flex; gap: 1rem; margin-top: 1.5rem; }
+        .btn-primary { background: #1e6f3f; color: white; border: none; padding: 10px; border-radius: 40px; flex:1; cursor: pointer; }
+        .btn-secondary { background: #e2e8f0; border: none; padding: 10px; border-radius: 40px; flex:1; cursor: pointer; }
         .toast-msg {
             position: fixed;
             bottom: 25px;
@@ -391,41 +344,25 @@
             color: white;
             padding: 12px 22px;
             border-radius: 40px;
-            font-weight: 500;
-            font-size: 0.9rem;
-            box-shadow: 0 6px 14px rgba(0,0,0,0.2);
             opacity: 0;
             transition: opacity 0.2s;
-            pointer-events: none;
             z-index: 2001;
         }
-        .price-note {
-            font-size: 0.75rem;
-            color: #5b7a99;
-            margin-top: 8px;
-            border-top: 1px solid #e2edf2;
-            padding-top: 10px;
-        }
-        .booking-section {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: 1rem;
-        }
-        footer {
-            margin-top: 1rem;
-            text-align: center;
-            font-size: 0.75rem;
-            color: #6e8aa8;
-        }
-        .free-slot-badge {
+        footer { margin-top: 1rem; text-align: center; font-size: 0.75rem; color: #6e8aa8; }
+        
+        .stats-badge {
             font-size: 0.7rem;
+            background: #2c4b64;
+            padding: 2px 8px;
+            border-radius: 20px;
+            margin-left: 8px;
         }
     </style>
 </head>
 <body>
 <div class="schedule-container">
-    <h1>🗺️ Квест-календарь | Бронирование</h1>
-    <div class="sub">6 квестов · почасовые слоты (10:00–18:00) · нажмите на свободный слот или кнопку бронирования</div>
+    <h1>🗄️ Квест-календарь | JSON Database Simulation</h1>
+    <div class="sub">Живая база данных в формате JSON — все изменения (бронирования, цены) мгновенно обновляют структуру внизу страницы</div>
 
     <div class="legend">
         <div class="legend-badges">
@@ -437,18 +374,18 @@
             <div class="quest-badge"><span class="color-dot quest-5"></span> Город ветров</div>
             <div class="quest-badge"><span class="color-dot quest-6"></span> Логово теней</div>
         </div>
-        <button class="refresh-btn" id="randomizeScheduleBtn">🔄 Обновить занятость</button>
+        <button class="refresh-btn" id="randomizeScheduleBtn">🔄 Сброс / Рандом</button>
     </div>
 
-    <div class="booking-section">
-        <button id="openBookingBtn" class="booking-btn">📅 + Забронировать квест</button>
-    </div>
+    <!-- Кнопка бронирования -->
+    <button id="openBookingBtn" class="booking-btn">📅 + Забронировать квест (обновит JSON)</button>
 
+    <!-- Таблица расписания -->
     <div class="table-wrapper">
-        <table class="schedule-table" id="scheduleTable">
+        <table class="schedule-table">
             <thead>
                 <tr>
-                    <th style="width: 110px;">День / Время</th>
+                    <th style="width:110px;">День / Время</th>
                     <th>10:00</th><th>11:00</th><th>12:00</th><th>13:00</th><th>14:00</th><th>15:00</th><th>16:00</th><th>17:00</th><th>18:00</th>
                 </tr>
             </thead>
@@ -456,37 +393,40 @@
         </table>
     </div>
 
-    <!-- Блок управления ценами -->
+    <!-- Блок цен -->
     <div class="price-panel">
-        <div class="price-title">
-            💰 Настройка стоимости слота (за человека)
-        </div>
         <div class="price-inputs">
             <div class="price-group">
-                <label>📆 Будни (ПН–ПТ) · обычная цена</label>
-                <input type="number" id="weekdayPrice" class="price-input" value="1200" step="100">
+                <label>📆 Будни (ПН–ПТ)</label>
+                <input type="number" id="weekdayPrice" value="1200" step="100">
             </div>
             <div class="price-group">
-                <label>🎉 Выходные (СБ–ВС) · повышенная цена</label>
-                <input type="number" id="weekendPrice" class="price-input" value="1600" step="100">
+                <label>🎉 Выходные (СБ–ВС)</label>
+                <input type="number" id="weekendPrice" value="1600" step="100">
             </div>
             <button id="savePricesBtn" class="save-btn">💾 Сохранить цены</button>
         </div>
-        <div class="price-note">
-            💡 Цена отображается под названием квеста. После бронирования цена автоматически подставляется согласно типу дня.
+    </div>
+
+    <!-- JSON База данных внизу страницы -->
+    <div class="json-section-bottom">
+        <div class="json-header">
+            <span>🗄️ DATABASE.JSON (симуляция базы данных) <span class="stats-badge" id="jsonStats">обновляется</span></span>
+            <button id="copyJsonBtn" class="copy-json-btn">📋 Копировать JSON</button>
+        </div>
+        <div class="json-content" id="jsonViewer">
+            <pre id="jsonPre">Загрузка данных...</pre>
         </div>
     </div>
-    <footer>✨ Нажмите на любой свободный слот в таблице или используйте кнопку бронирования. Забронированный слот сразу появится в расписании.</footer>
+    <footer>✨ Любое бронирование или изменение цен моментально обновляет JSON-структуру внизу. Данные синхронизированы с "базой".</footer>
 </div>
-
-<div id="toastMsg" class="toast-msg">✅ Успешно!</div>
 
 <!-- Модальное окно бронирования -->
 <div id="bookingModal" class="modal">
     <div class="modal-content">
         <h3>🎯 Забронировать квест</h3>
         <div class="form-group">
-            <label>Выберите квест:</label>
+            <label>Квест:</label>
             <select id="modalQuestSelect">
                 <option value="0">✨ Тайна руин</option>
                 <option value="1">🐉 Драконья бухта</option>
@@ -497,14 +437,12 @@
             </select>
         </div>
         <div class="form-group">
-            <label>Выберите день:</label>
+            <label>День:</label>
             <select id="modalDaySelect"></select>
         </div>
         <div class="form-group">
-            <label>Выберите свободное время:</label>
-            <select id="modalTimeSelect">
-                <option value="">-- сначала выберите день --</option>
-            </select>
+            <label>Свободное время:</label>
+            <select id="modalTimeSelect"></select>
         </div>
         <div class="modal-buttons">
             <button id="confirmBookingBtn" class="btn-primary">✅ Забронировать</button>
@@ -512,9 +450,10 @@
         </div>
     </div>
 </div>
+<div id="toastMsg" class="toast-msg">✅ Готово</div>
 
 <script>
-    // ---------- КОНФИГУРАЦИЯ ----------
+    // ---------- ДАННЫЕ (СИМУЛЯЦИЯ БД) ----------
     const weekDays = [
         { name: "Понедельник", short: "ПН", date: "24 мар", type: "weekday", dayIndex: 0 },
         { name: "Вторник", short: "ВТ", date: "25 мар", type: "weekday", dayIndex: 1 },
@@ -524,278 +463,290 @@
         { name: "Суббота", short: "СБ", date: "29 мар", type: "weekend", dayIndex: 5 },
         { name: "Воскресенье", short: "ВС", date: "30 мар", type: "weekend", dayIndex: 6 }
     ];
-
     const timeSlots = ["10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
-    const questNames = [
-        "Тайна руин",
-        "Драконья бухта",
-        "Зеркальный лабиринт",
-        "Проклятый амулет",
-        "Город ветров",
-        "Логово теней"
-    ];
-
-    function getQuestClass(questIndex) {
-        return `quest-${questIndex + 1}`;
-    }
-
-    // Генерация случайной матрицы занятости
-    function generateRandomOccupancy() {
-        const occupancy = [];
-        for (let day = 0; day < 7; day++) {
-            const daySlots = [];
-            for (let slot = 0; slot < timeSlots.length; slot++) {
-                const isOccupied = Math.random() < 0.68;
-                if (isOccupied) {
-                    const questIdx = Math.floor(Math.random() * 6);
-                    daySlots.push(questIdx);
-                } else {
-                    daySlots.push(null);
-                }
-            }
-            occupancy.push(daySlots);
-        }
-        // гарантия свободных слотов
-        for (let d = 0; d < 7; d++) {
-            if (occupancy[d].every(slot => slot !== null)) {
-                let randomSlot = Math.floor(Math.random() * timeSlots.length);
-                occupancy[d][randomSlot] = null;
-            }
-        }
-        // демо-фиксы
-        if (occupancy[0][0] === null) occupancy[0][0] = 0;
-        if (occupancy[1][3] === null) occupancy[1][3] = 2;
-        if (occupancy[3][5] === null) occupancy[3][5] = 4;
-        if (occupancy[5][7] === null) occupancy[5][7] = 5;
-        if (occupancy[6][4] === null) occupancy[6][4] = 1;
-        return occupancy;
-    }
+    const questNames = ["Тайна руин", "Драконья бухта", "Зеркальный лабиринт", "Проклятый амулет", "Город ветров", "Логово теней"];
 
     let currentWeekdayPrice = 1200;
     let currentWeekendPrice = 1600;
-    let occupancyData = generateRandomOccupancy();
+    
+    // ОСНОВНАЯ БАЗА ДАННЫХ: occupancyData[day][slot] = null или индекс квеста 0-5
+    let occupancyData = [];
 
-    function getPriceForDay(dayIndex) {
-        const dayType = weekDays[dayIndex].type;
-        return dayType === "weekday" ? currentWeekdayPrice : currentWeekendPrice;
+    function getQuestClass(idx) { return `quest-${idx+1}`; }
+    function getPriceForDay(dayIdx) { return weekDays[dayIdx].type === "weekday" ? currentWeekdayPrice : currentWeekendPrice; }
+
+    // Генерация случайной занятости
+    function generateRandomOccupancy() {
+        const occ = [];
+        for (let d = 0; d < 7; d++) {
+            const slots = [];
+            for (let s = 0; s < timeSlots.length; s++) {
+                const isOcc = Math.random() < 0.68;
+                slots.push(isOcc ? Math.floor(Math.random() * 6) : null);
+            }
+            occ.push(slots);
+        }
+        // гарантия свободных
+        for (let d=0; d<7; d++) if (occ[d].every(v=>v!==null)) occ[d][Math.floor(Math.random()*9)] = null;
+        // фикс для наглядности
+        if (occ[0][0] === null) occ[0][0] = 0;
+        if (occ[1][3] === null) occ[1][3] = 2;
+        if (occ[3][5] === null) occ[3][5] = 4;
+        if (occ[5][7] === null) occ[5][7] = 5;
+        if (occ[6][4] === null) occ[6][4] = 1;
+        return occ;
     }
 
+    // ========== ПОСТРОЕНИЕ JSON-ДЕРЕВА ==========
+    function buildDatabaseJSON() {
+        const database = {
+            meta: {
+                version: "1.0",
+                lastUpdated: new Date().toISOString(),
+                description: "Симуляция базы данных расписания квестов"
+            },
+            priceConfig: {
+                weekdayPrice: currentWeekdayPrice,
+                weekendPrice: currentWeekendPrice,
+                currency: "RUB",
+                note: "Цены применяются к занятым слотам"
+            },
+            quests: questNames.map((name, idx) => ({
+                id: idx,
+                name: name,
+                colorClass: `quest-${idx+1}`,
+                available: true
+            })),
+            schedule: []
+        };
+        
+        for (let d = 0; d < weekDays.length; d++) {
+            const day = weekDays[d];
+            const daySlots = [];
+            for (let s = 0; s < timeSlots.length; s++) {
+                const questId = occupancyData[d][s];
+                const slotData = {
+                    time: timeSlots[s],
+                    isOccupied: questId !== null,
+                    quest: questId !== null ? {
+                        id: questId,
+                        name: questNames[questId]
+                    } : null,
+                    price: questId !== null ? getPriceForDay(d) : null,
+                    dayType: day.type
+                };
+                daySlots.push(slotData);
+            }
+            database.schedule.push({
+                dayId: d,
+                dayName: day.name,
+                date: day.date,
+                dayType: day.type,
+                slots: daySlots
+            });
+        }
+        
+        let totalSlots = 7 * timeSlots.length;
+        let occupiedCount = 0;
+        for (let d=0; d<7; d++) {
+            for (let s=0; s<timeSlots.length; s++) {
+                if (occupancyData[d][s] !== null) occupiedCount++;
+            }
+        }
+        database.statistics = {
+            totalSlots: totalSlots,
+            occupiedSlots: occupiedCount,
+            freeSlots: totalSlots - occupiedCount,
+            occupancyRate: ((occupiedCount / totalSlots)*100).toFixed(1) + "%"
+        };
+        
+        return database;
+    }
+    
+    // ОТОБРАЖЕНИЕ JSON с подсветкой
+    function renderJSON() {
+        const dbObject = buildDatabaseJSON();
+        const prettyJson = JSON.stringify(dbObject, null, 2);
+        const pre = document.getElementById('jsonPre');
+        const statsSpan = document.getElementById('jsonStats');
+        if (pre) {
+            let highlighted = prettyJson
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+                    let cls = 'json-number';
+                    if (/^"/.test(match)) {
+                        if (/:$/.test(match)) cls = 'json-key';
+                        else cls = 'json-string';
+                    } else if (/true|false/.test(match)) cls = 'json-boolean';
+                    else if (/null/.test(match)) cls = 'json-null';
+                    return `<span class="${cls}">${match}</span>`;
+                });
+            pre.innerHTML = highlighted;
+        }
+        if (statsSpan) {
+            statsSpan.textContent = `${dbObject.statistics.occupiedSlots} занято · ${dbObject.statistics.freeSlots} свободно`;
+        }
+    }
+    
+    // Отрисовка таблицы
     function renderSchedule() {
         const tbody = document.getElementById('schedule-body');
         if (!tbody) return;
         tbody.innerHTML = '';
-
         for (let dayIdx = 0; dayIdx < weekDays.length; dayIdx++) {
             const dayInfo = weekDays[dayIdx];
             const daySlots = occupancyData[dayIdx];
             const tr = document.createElement('tr');
-
             const tdDay = document.createElement('td');
             tdDay.className = 'day-col';
-            tdDay.style.backgroundColor = '#f2f7fd';
-            tdDay.style.textAlign = 'center';
             tdDay.innerHTML = `<span class="weekday-name">${dayInfo.name}</span><span class="weekday-date">${dayInfo.date}</span>`;
             tr.appendChild(tdDay);
-
             for (let slotIdx = 0; slotIdx < timeSlots.length; slotIdx++) {
-                const questValue = daySlots[slotIdx];
+                const questVal = daySlots[slotIdx];
                 const tdSlot = document.createElement('td');
                 tdSlot.classList.add('slot-cell');
-
-                if (questValue !== null && questValue >= 0 && questValue < 6) {
-                    const questNameShort = questNames[questValue];
-                    const colorClass = getQuestClass(questValue);
-                    tdSlot.classList.add('quest-taken', colorClass);
-                    const slotPrice = getPriceForDay(dayIdx);
-                    const formattedPrice = new Intl.NumberFormat('ru-RU').format(slotPrice);
-                    tdSlot.innerHTML = `
-                        <div style="font-weight:700; font-size:0.85rem;">✨ ${questNameShort}</div>
-                        <div style="font-size:0.7rem; margin-top:4px;">💰 ${formattedPrice} ₽</div>
-                    `;
-                    tdSlot.title = `${dayInfo.name} ${timeSlots[slotIdx]} | ${questNameShort} | ${formattedPrice} ₽`;
+                if (questVal !== null && questVal >= 0) {
+                    tdSlot.classList.add('quest-taken', getQuestClass(questVal));
+                    const price = getPriceForDay(dayIdx);
+                    tdSlot.innerHTML = `<div style="font-weight:700;">✨ ${questNames[questVal]}</div><div style="font-size:0.7rem;">💰 ${price.toLocaleString()} ₽</div>`;
                 } else {
                     tdSlot.classList.add('free-slot');
-                    tdSlot.innerHTML = `⋆ свободно<br><span class="free-slot-badge">📅 нажмите для брони</span>`;
-                    tdSlot.title = `${dayInfo.name} ${timeSlots[slotIdx]} — свободно, кликните чтобы забронировать`;
-                    // Добавляем обработчик клика на свободный слот
+                    tdSlot.innerHTML = `⋆ свободно<br><span style="font-size:0.65rem;">нажмите</span>`;
                     tdSlot.style.cursor = 'pointer';
-                    tdSlot.addEventListener('click', (function(d, t) {
-                        return function() { openBookingModalWithPreset(d, t); };
-                    })(dayIdx, slotIdx));
+                    tdSlot.addEventListener('click', (function(d, s) { return function() { openBookingWithPreset(d, s); }; })(dayIdx, slotIdx));
                 }
                 tr.appendChild(tdSlot);
             }
             tbody.appendChild(tr);
         }
+        renderJSON();
     }
-
-    // Функция бронирования слота
-    function bookSlot(dayIndex, slotIndex, questId) {
-        if (dayIndex < 0 || dayIndex >= 7 || slotIndex < 0 || slotIndex >= timeSlots.length) return false;
-        // проверяем что слот действительно свободен
-        if (occupancyData[dayIndex][slotIndex] !== null) {
-            showToast("❌ Этот слот уже занят! Выберите другой.", 2000);
+    
+    // Бронирование
+    function bookSlot(dayIdx, slotIdx, questId) {
+        if (occupancyData[dayIdx][slotIdx] !== null) {
+            showToast("❌ Слот уже занят!", 1500);
             return false;
         }
-        occupancyData[dayIndex][slotIndex] = questId;
+        occupancyData[dayIdx][slotIdx] = questId;
         renderSchedule();
-        showToast(`✅ Забронировано: ${weekDays[dayIndex].name} ${timeSlots[slotIndex]} — ${questNames[questId]}`, 2000);
+        showToast(`✅ Забронирован: ${weekDays[dayIdx].name} ${timeSlots[slotIdx]} — ${questNames[questId]}`, 2000);
         return true;
     }
-
-    function showToast(message, duration = 2000) {
+    
+    function showToast(msg, duration=2000) {
         const toast = document.getElementById('toastMsg');
-        toast.textContent = message;
+        toast.textContent = msg;
         toast.style.opacity = '1';
-        setTimeout(() => {
-            toast.style.opacity = '0';
-        }, duration);
+        setTimeout(() => toast.style.opacity = '0', duration);
     }
-
-    // --- Модальное окно бронирования ---
+    
+    // Модальное окно
     const modal = document.getElementById('bookingModal');
-    const modalQuestSelect = document.getElementById('modalQuestSelect');
     const modalDaySelect = document.getElementById('modalDaySelect');
     const modalTimeSelect = document.getElementById('modalTimeSelect');
-    let pendingDayIndex = null;
-    let pendingSlotIndex = null;
-
+    let presetDay = null, presetSlot = null;
+    
     function populateDays() {
         modalDaySelect.innerHTML = '';
-        weekDays.forEach((day, idx) => {
-            const option = document.createElement('option');
-            option.value = idx;
-            option.textContent = `${day.name} (${day.date})`;
-            modalDaySelect.appendChild(option);
+        weekDays.forEach((d, idx) => {
+            let opt = document.createElement('option');
+            opt.value = idx;
+            opt.textContent = `${d.name} (${d.date})`;
+            modalDaySelect.appendChild(opt);
         });
     }
-
-    function updateFreeSlotsForDay() {
-        const dayIdx = parseInt(modalDaySelect.value, 10);
-        if (isNaN(dayIdx)) {
-            modalTimeSelect.innerHTML = '<option value="">-- выберите день --</option>';
-            return;
+    
+    function updateFreeSlots() {
+        let dayIdx = parseInt(modalDaySelect.value);
+        if (isNaN(dayIdx)) return;
+        let free = [];
+        for (let s=0; s<timeSlots.length; s++) {
+            if (occupancyData[dayIdx][s] === null) free.push({slotIdx:s, time:timeSlots[s]});
         }
-        const freeSlots = [];
-        for (let s = 0; s < timeSlots.length; s++) {
-            if (occupancyData[dayIdx][s] === null) {
-                freeSlots.push({ slotIdx: s, time: timeSlots[s] });
-            }
-        }
-        if (freeSlots.length === 0) {
-            modalTimeSelect.innerHTML = '<option value="">😔 нет свободных слотов в этот день</option>';
-        } else {
-            modalTimeSelect.innerHTML = freeSlots.map(fs => `<option value="${fs.slotIdx}">${fs.time} (свободно)</option>`).join('');
+        modalTimeSelect.innerHTML = free.length ? free.map(f => `<option value="${f.slotIdx}">${f.time} (свободно)</option>`).join('') : '<option value="">Нет свободных слотов</option>';
+        if (presetDay === dayIdx && presetSlot !== null && occupancyData[dayIdx][presetSlot] === null) {
+            let optExists = Array.from(modalTimeSelect.options).find(o => o.value == presetSlot);
+            if (optExists) modalTimeSelect.value = presetSlot;
         }
     }
-
-    function openBookingModalWithPreset(dayIdx, slotIdx) {
-        pendingDayIndex = dayIdx;
-        pendingSlotIndex = slotIdx;
-        // заполняем дни и выбираем нужный
+    
+    function openBookingWithPreset(dayIdx, slotIdx) {
+        presetDay = dayIdx;
+        presetSlot = slotIdx;
         populateDays();
         modalDaySelect.value = dayIdx;
-        updateFreeSlotsForDay();
-        // пытаемся выбрать конкретный слот, если он свободен
-        setTimeout(() => {
-            const optionToSelect = Array.from(modalTimeSelect.options).find(opt => opt.value == slotIdx);
-            if (optionToSelect && occupancyData[dayIdx][slotIdx] === null) {
-                modalTimeSelect.value = slotIdx;
-            } else {
-                // если слот уже занят (например из-за обновления), то просто показываем список
-                if (occupancyData[dayIdx][slotIdx] !== null) {
-                    showToast("Этот слот больше не доступен, выберите другой", 1500);
-                }
-            }
-        }, 50);
+        updateFreeSlots();
         modal.classList.add('active');
     }
-
-    function openBookingModalFree() {
-        pendingDayIndex = null;
-        pendingSlotIndex = null;
+    
+    function openBookingFree() {
+        presetDay = null;
+        presetSlot = null;
         populateDays();
         modalDaySelect.value = 0;
-        updateFreeSlotsForDay();
+        updateFreeSlots();
         modal.classList.add('active');
     }
-
+    
     function confirmBooking() {
-        const questId = parseInt(modalQuestSelect.value, 10);
-        const dayIdx = parseInt(modalDaySelect.value, 10);
-        const timeSlotValue = modalTimeSelect.value;
-        
-        if (isNaN(dayIdx)) {
-            showToast("Выберите день", 1500);
-            return;
-        }
-        if (!timeSlotValue || timeSlotValue === "") {
-            showToast("Выберите время (свободный слот)", 1500);
-            return;
-        }
-        const slotIdx = parseInt(timeSlotValue, 10);
-        if (isNaN(slotIdx) || slotIdx < 0 || slotIdx >= timeSlots.length) {
-            showToast("Некорректное время", 1500);
-            return;
-        }
-        // проверка что слот все еще свободен
-        if (occupancyData[dayIdx][slotIdx] !== null) {
-            showToast("К сожалению, этот слот уже занят. Обновите список и выберите другой.", 2500);
-            updateFreeSlotsForDay();
-            return;
-        }
+        let questId = parseInt(document.getElementById('modalQuestSelect').value);
+        let dayIdx = parseInt(modalDaySelect.value);
+        let slotVal = modalTimeSelect.value;
+        if (!slotVal || slotVal === "") { showToast("Выберите свободное время", 1500); return; }
+        let slotIdx = parseInt(slotVal);
+        if (isNaN(slotIdx)) return;
+        if (occupancyData[dayIdx][slotIdx] !== null) { showToast("Слот больше не доступен", 1500); updateFreeSlots(); return; }
         bookSlot(dayIdx, slotIdx, questId);
         modal.classList.remove('active');
-        // обновляем выпадающие списки в модалке при следующем открытии
     }
-
-    function closeModal() {
-        modal.classList.remove('active');
-    }
-
+    
+    function closeModal() { modal.classList.remove('active'); }
+    
     // Сохранение цен
     function savePrices() {
-        const weekdayInput = document.getElementById('weekdayPrice');
-        const weekendInput = document.getElementById('weekendPrice');
-        let newWeekday = parseInt(weekdayInput.value, 10);
-        let newWeekend = parseInt(weekendInput.value, 10);
-        if (isNaN(newWeekday)) newWeekday = 1200;
-        if (isNaN(newWeekend)) newWeekend = 1600;
-        currentWeekdayPrice = newWeekday;
-        currentWeekendPrice = newWeekend;
-        weekdayInput.value = currentWeekdayPrice;
-        weekendInput.value = currentWeekendPrice;
+        let wd = parseInt(document.getElementById('weekdayPrice').value);
+        let we = parseInt(document.getElementById('weekendPrice').value);
+        if (!isNaN(wd)) currentWeekdayPrice = wd;
+        if (!isNaN(we)) currentWeekendPrice = we;
+        document.getElementById('weekdayPrice').value = currentWeekdayPrice;
+        document.getElementById('weekendPrice').value = currentWeekendPrice;
         renderSchedule();
-        showToast("💰 Цены сохранены", 1500);
+        showToast("💰 Цены сохранены, JSON обновлен", 1500);
     }
-
-    function randomizeOccupancy() {
+    
+    function randomizeAll() {
         occupancyData = generateRandomOccupancy();
         renderSchedule();
-        showToast("🔄 Расписание обновлено", 1500);
+        showToast("🔄 Расписание сброшено (JSON обновлен)", 1500);
     }
-
-    // Инициализация событий
+    
+    function copyJSON() {
+        const db = buildDatabaseJSON();
+        const jsonStr = JSON.stringify(db, null, 2);
+        navigator.clipboard.writeText(jsonStr).then(() => showToast("📋 JSON скопирован в буфер", 1200));
+    }
+    
+    // Инициализация
+    function init() {
+        occupancyData = generateRandomOccupancy();
+        renderSchedule();
+        bindEvents();
+        populateDays();
+        updateFreeSlots();
+    }
+    
     function bindEvents() {
         document.getElementById('savePricesBtn')?.addEventListener('click', savePrices);
-        document.getElementById('randomizeScheduleBtn')?.addEventListener('click', randomizeOccupancy);
-        document.getElementById('openBookingBtn')?.addEventListener('click', openBookingModalFree);
+        document.getElementById('randomizeScheduleBtn')?.addEventListener('click', randomizeAll);
+        document.getElementById('openBookingBtn')?.addEventListener('click', openBookingFree);
         document.getElementById('confirmBookingBtn')?.addEventListener('click', confirmBooking);
         document.getElementById('closeModalBtn')?.addEventListener('click', closeModal);
-        modalDaySelect?.addEventListener('change', updateFreeSlotsForDay);
-        // закрытие по клику на фон
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeModal();
-        });
+        document.getElementById('copyJsonBtn')?.addEventListener('click', copyJSON);
+        modalDaySelect?.addEventListener('change', updateFreeSlots);
+        modal?.addEventListener('click', (e) => { if(e.target === modal) closeModal(); });
     }
-
-    function init() {
-        bindEvents();
-        renderSchedule();
-        // инициализация выпадающих списков модалки
-        populateDays();
-        updateFreeSlotsForDay();
-    }
+    
     init();
 </script>
 </body>
