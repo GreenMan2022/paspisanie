@@ -1,1 +1,802 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Квест-календарь | Бронирование слотов</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: linear-gradient(145deg, #f4f7fc 0%, #eef2f5 100%);
+            padding: 2rem 1.5rem;
+            color: #1a2c3e;
+        }
+
+        .schedule-container {
+            max-width: 1500px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.75);
+            border-radius: 2rem;
+            backdrop-filter: blur(2px);
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.2);
+            padding: 1.5rem 1rem 2rem 1rem;
+        }
+
+        h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            margin-left: 0.75rem;
+            background: linear-gradient(135deg, #1e4668, #2b5a84);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .sub {
+            margin-left: 0.85rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+            color: #4a627a;
+            border-left: 3px solid #7c9bc0;
+            padding-left: 0.8rem;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            background: white;
+            padding: 0.9rem 1.2rem;
+            border-radius: 60px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .legend-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+        }
+
+        .legend-title {
+            font-weight: 600;
+            margin-right: 0.5rem;
+            color: #1f3b4c;
+        }
+
+        .quest-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #f8fafd;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .color-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        .refresh-btn {
+            background: white;
+            border: 1px solid #bdd4e4;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .refresh-btn:hover {
+            background-color: #eef3fc;
+            transform: scale(0.97);
+        }
+
+        .booking-btn {
+            background: linear-gradient(135deg, #2c5f8a, #1e4668);
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            display: inline-block;
+        }
+        .booking-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+            background: linear-gradient(135deg, #1e4668, #0f3552);
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 1.5rem;
+            background: white;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            margin-bottom: 1.5rem;
+        }
+
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            min-width: 900px;
+        }
+
+        .schedule-table th {
+            background: #eef3fc;
+            padding: 1rem 0.5rem;
+            font-weight: 700;
+            color: #1e3b4f;
+            border-bottom: 2px solid #cbdde9;
+            text-align: center;
+        }
+
+        .day-col {
+            background: #e2edf6;
+            font-weight: bold;
+            text-align: center;
+            vertical-align: middle;
+            border-right: 1px solid #cddfea;
+        }
+
+        .time-header {
+            font-size: 0.85rem;
+            font-weight: 600;
+            background: #f5f9fe;
+        }
+
+        .schedule-table td {
+            padding: 0.5rem 0.3rem;
+            border: 1px solid #e2edf5;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .slot-cell {
+            font-weight: 500;
+            cursor: default;
+            transition: all 0.1s;
+        }
+
+        .quest-taken {
+            border-radius: 16px;
+            font-weight: 600;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.4), 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .free-slot {
+            background-color: #fefef5;
+            color: #8da0aa;
+            font-style: italic;
+            font-weight: 400;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .free-slot:hover {
+            background-color: #e8f0fe;
+            transform: scale(0.98);
+            cursor: pointer;
+        }
+
+        /* цвета квестов */
+        .quest-1 { background-color: #FFB3BA; color: #6b2e3a; border-left: 4px solid #e63946; }
+        .quest-2 { background-color: #B5EAD7; color: #2c5e3f; border-left: 4px solid #2ecc71; }
+        .quest-3 { background-color: #C7E9FB; color: #1d5a7a; border-left: 4px solid #3498db; }
+        .quest-4 { background-color: #FFE5B4; color: #9b6a1a; border-left: 4px solid #f1c40f; }
+        .quest-5 { background-color: #E0BBE4; color: #5a3a6e; border-left: 4px solid #9b59b6; }
+        .quest-6 { background-color: #FBC8B5; color: #b84c2c; border-left: 4px solid #e67e22; }
+
+        .weekday-name {
+            font-weight: 800;
+            font-size: 1rem;
+            display: block;
+        }
+        .weekday-date {
+            font-size: 0.7rem;
+            font-weight: normal;
+            color: #4f6f8a;
+        }
+
+        /* Блок управления ценами */
+        .price-panel {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 1.2rem 1.5rem;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+            margin-top: 0.5rem;
+        }
+
+        .price-title {
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #1f4868;
+        }
+
+        .price-inputs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            align-items: flex-end;
+            margin-bottom: 1.2rem;
+        }
+
+        .price-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .price-group label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #2c5778;
+        }
+
+        .price-input {
+            padding: 10px 14px;
+            font-size: 1rem;
+            border: 2px solid #d4e2ed;
+            border-radius: 28px;
+            width: 180px;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+        .price-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
+        }
+
+        .save-btn {
+            background: #1e6f3f;
+            color: white;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 40px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .save-btn:hover {
+            background: #15803d;
+        }
+
+        /* Модальное окно */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 2rem;
+            max-width: 500px;
+            width: 90%;
+            padding: 2rem;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            animation: modalSlideIn 0.2s ease;
+        }
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .modal-content h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: #1e4668;
+        }
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            color: #2c5778;
+        }
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #d4e2ed;
+            border-radius: 28px;
+            font-size: 1rem;
+            background: white;
+            cursor: pointer;
+        }
+        .form-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .btn-primary {
+            background: #1e6f3f;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            flex: 1;
+        }
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #1f3b4c;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            flex: 1;
+        }
+        .btn-primary:hover {
+            background: #15803d;
+        }
+        .btn-secondary:hover {
+            background: #cbd5e1;
+        }
+        .toast-msg {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            background: #1e4668;
+            color: white;
+            padding: 12px 22px;
+            border-radius: 40px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.2);
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+            z-index: 2001;
+        }
+        .price-note {
+            font-size: 0.75rem;
+            color: #5b7a99;
+            margin-top: 8px;
+            border-top: 1px solid #e2edf2;
+            padding-top: 10px;
+        }
+        .booking-section {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 1rem;
+        }
+        footer {
+            margin-top: 1rem;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #6e8aa8;
+        }
+        .free-slot-badge {
+            font-size: 0.7rem;
+        }
+    </style>
+</head>
+<body>
+<div class="schedule-container">
+    <h1>🗺️ Квест-календарь | Бронирование</h1>
+    <div class="sub">6 квестов · почасовые слоты (10:00–18:00) · нажмите на свободный слот или кнопку бронирования</div>
+
+    <div class="legend">
+        <div class="legend-badges">
+            <span class="legend-title">🎭 Квесты:</span>
+            <div class="quest-badge"><span class="color-dot quest-1"></span> Тайна руин</div>
+            <div class="quest-badge"><span class="color-dot quest-2"></span> Драконья бухта</div>
+            <div class="quest-badge"><span class="color-dot quest-3"></span> Зеркальный лабиринт</div>
+            <div class="quest-badge"><span class="color-dot quest-4"></span> Проклятый амулет</div>
+            <div class="quest-badge"><span class="color-dot quest-5"></span> Город ветров</div>
+            <div class="quest-badge"><span class="color-dot quest-6"></span> Логово теней</div>
+        </div>
+        <button class="refresh-btn" id="randomizeScheduleBtn">🔄 Обновить занятость</button>
+    </div>
+
+    <div class="booking-section">
+        <button id="openBookingBtn" class="booking-btn">📅 + Забронировать квест</button>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="schedule-table" id="scheduleTable">
+            <thead>
+                <tr>
+                    <th style="width: 110px;">День / Время</th>
+                    <th>10:00</th><th>11:00</th><th>12:00</th><th>13:00</th><th>14:00</th><th>15:00</th><th>16:00</th><th>17:00</th><th>18:00</th>
+                </tr>
+            </thead>
+            <tbody id="schedule-body"></tbody>
+        </table>
+    </div>
+
+    <!-- Блок управления ценами -->
+    <div class="price-panel">
+        <div class="price-title">
+            💰 Настройка стоимости слота (за человека)
+        </div>
+        <div class="price-inputs">
+            <div class="price-group">
+                <label>📆 Будни (ПН–ПТ) · обычная цена</label>
+                <input type="number" id="weekdayPrice" class="price-input" value="1200" step="100">
+            </div>
+            <div class="price-group">
+                <label>🎉 Выходные (СБ–ВС) · повышенная цена</label>
+                <input type="number" id="weekendPrice" class="price-input" value="1600" step="100">
+            </div>
+            <button id="savePricesBtn" class="save-btn">💾 Сохранить цены</button>
+        </div>
+        <div class="price-note">
+            💡 Цена отображается под названием квеста. После бронирования цена автоматически подставляется согласно типу дня.
+        </div>
+    </div>
+    <footer>✨ Нажмите на любой свободный слот в таблице или используйте кнопку бронирования. Забронированный слот сразу появится в расписании.</footer>
+</div>
+
+<div id="toastMsg" class="toast-msg">✅ Успешно!</div>
+
+<!-- Модальное окно бронирования -->
+<div id="bookingModal" class="modal">
+    <div class="modal-content">
+        <h3>🎯 Забронировать квест</h3>
+        <div class="form-group">
+            <label>Выберите квест:</label>
+            <select id="modalQuestSelect">
+                <option value="0">✨ Тайна руин</option>
+                <option value="1">🐉 Драконья бухта</option>
+                <option value="2">🪞 Зеркальный лабиринт</option>
+                <option value="3">🏺 Проклятый амулет</option>
+                <option value="4">🌪️ Город ветров</option>
+                <option value="5">👤 Логово теней</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Выберите день:</label>
+            <select id="modalDaySelect"></select>
+        </div>
+        <div class="form-group">
+            <label>Выберите свободное время:</label>
+            <select id="modalTimeSelect">
+                <option value="">-- сначала выберите день --</option>
+            </select>
+        </div>
+        <div class="modal-buttons">
+            <button id="confirmBookingBtn" class="btn-primary">✅ Забронировать</button>
+            <button id="closeModalBtn" class="btn-secondary">Отмена</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ---------- КОНФИГУРАЦИЯ ----------
+    const weekDays = [
+        { name: "Понедельник", short: "ПН", date: "24 мар", type: "weekday", dayIndex: 0 },
+        { name: "Вторник", short: "ВТ", date: "25 мар", type: "weekday", dayIndex: 1 },
+        { name: "Среда", short: "СР", date: "26 мар", type: "weekday", dayIndex: 2 },
+        { name: "Четверг", short: "ЧТ", date: "27 мар", type: "weekday", dayIndex: 3 },
+        { name: "Пятница", short: "ПТ", date: "28 мар", type: "weekday", dayIndex: 4 },
+        { name: "Суббота", short: "СБ", date: "29 мар", type: "weekend", dayIndex: 5 },
+        { name: "Воскресенье", short: "ВС", date: "30 мар", type: "weekend", dayIndex: 6 }
+    ];
+
+    const timeSlots = ["10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
+    const questNames = [
+        "Тайна руин",
+        "Драконья бухта",
+        "Зеркальный лабиринт",
+        "Проклятый амулет",
+        "Город ветров",
+        "Логово теней"
+    ];
+
+    function getQuestClass(questIndex) {
+        return `quest-${questIndex + 1}`;
+    }
+
+    // Генерация случайной матрицы занятости
+    function generateRandomOccupancy() {
+        const occupancy = [];
+        for (let day = 0; day < 7; day++) {
+            const daySlots = [];
+            for (let slot = 0; slot < timeSlots.length; slot++) {
+                const isOccupied = Math.random() < 0.68;
+                if (isOccupied) {
+                    const questIdx = Math.floor(Math.random() * 6);
+                    daySlots.push(questIdx);
+                } else {
+                    daySlots.push(null);
+                }
+            }
+            occupancy.push(daySlots);
+        }
+        // гарантия свободных слотов
+        for (let d = 0; d < 7; d++) {
+            if (occupancy[d].every(slot => slot !== null)) {
+                let randomSlot = Math.floor(Math.random() * timeSlots.length);
+                occupancy[d][randomSlot] = null;
+            }
+        }
+        // демо-фиксы
+        if (occupancy[0][0] === null) occupancy[0][0] = 0;
+        if (occupancy[1][3] === null) occupancy[1][3] = 2;
+        if (occupancy[3][5] === null) occupancy[3][5] = 4;
+        if (occupancy[5][7] === null) occupancy[5][7] = 5;
+        if (occupancy[6][4] === null) occupancy[6][4] = 1;
+        return occupancy;
+    }
+
+    let currentWeekdayPrice = 1200;
+    let currentWeekendPrice = 1600;
+    let occupancyData = generateRandomOccupancy();
+
+    function getPriceForDay(dayIndex) {
+        const dayType = weekDays[dayIndex].type;
+        return dayType === "weekday" ? currentWeekdayPrice : currentWeekendPrice;
+    }
+
+    function renderSchedule() {
+        const tbody = document.getElementById('schedule-body');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        for (let dayIdx = 0; dayIdx < weekDays.length; dayIdx++) {
+            const dayInfo = weekDays[dayIdx];
+            const daySlots = occupancyData[dayIdx];
+            const tr = document.createElement('tr');
+
+            const tdDay = document.createElement('td');
+            tdDay.className = 'day-col';
+            tdDay.style.backgroundColor = '#f2f7fd';
+            tdDay.style.textAlign = 'center';
+            tdDay.innerHTML = `<span class="weekday-name">${dayInfo.name}</span><span class="weekday-date">${dayInfo.date}</span>`;
+            tr.appendChild(tdDay);
+
+            for (let slotIdx = 0; slotIdx < timeSlots.length; slotIdx++) {
+                const questValue = daySlots[slotIdx];
+                const tdSlot = document.createElement('td');
+                tdSlot.classList.add('slot-cell');
+
+                if (questValue !== null && questValue >= 0 && questValue < 6) {
+                    const questNameShort = questNames[questValue];
+                    const colorClass = getQuestClass(questValue);
+                    tdSlot.classList.add('quest-taken', colorClass);
+                    const slotPrice = getPriceForDay(dayIdx);
+                    const formattedPrice = new Intl.NumberFormat('ru-RU').format(slotPrice);
+                    tdSlot.innerHTML = `
+                        <div style="font-weight:700; font-size:0.85rem;">✨ ${questNameShort}</div>
+                        <div style="font-size:0.7rem; margin-top:4px;">💰 ${formattedPrice} ₽</div>
+                    `;
+                    tdSlot.title = `${dayInfo.name} ${timeSlots[slotIdx]} | ${questNameShort} | ${formattedPrice} ₽`;
+                } else {
+                    tdSlot.classList.add('free-slot');
+                    tdSlot.innerHTML = `⋆ свободно<br><span class="free-slot-badge">📅 нажмите для брони</span>`;
+                    tdSlot.title = `${dayInfo.name} ${timeSlots[slotIdx]} — свободно, кликните чтобы забронировать`;
+                    // Добавляем обработчик клика на свободный слот
+                    tdSlot.style.cursor = 'pointer';
+                    tdSlot.addEventListener('click', (function(d, t) {
+                        return function() { openBookingModalWithPreset(d, t); };
+                    })(dayIdx, slotIdx));
+                }
+                tr.appendChild(tdSlot);
+            }
+            tbody.appendChild(tr);
+        }
+    }
+
+    // Функция бронирования слота
+    function bookSlot(dayIndex, slotIndex, questId) {
+        if (dayIndex < 0 || dayIndex >= 7 || slotIndex < 0 || slotIndex >= timeSlots.length) return false;
+        // проверяем что слот действительно свободен
+        if (occupancyData[dayIndex][slotIndex] !== null) {
+            showToast("❌ Этот слот уже занят! Выберите другой.", 2000);
+            return false;
+        }
+        occupancyData[dayIndex][slotIndex] = questId;
+        renderSchedule();
+        showToast(`✅ Забронировано: ${weekDays[dayIndex].name} ${timeSlots[slotIndex]} — ${questNames[questId]}`, 2000);
+        return true;
+    }
+
+    function showToast(message, duration = 2000) {
+        const toast = document.getElementById('toastMsg');
+        toast.textContent = message;
+        toast.style.opacity = '1';
+        setTimeout(() => {
+            toast.style.opacity = '0';
+        }, duration);
+    }
+
+    // --- Модальное окно бронирования ---
+    const modal = document.getElementById('bookingModal');
+    const modalQuestSelect = document.getElementById('modalQuestSelect');
+    const modalDaySelect = document.getElementById('modalDaySelect');
+    const modalTimeSelect = document.getElementById('modalTimeSelect');
+    let pendingDayIndex = null;
+    let pendingSlotIndex = null;
+
+    function populateDays() {
+        modalDaySelect.innerHTML = '';
+        weekDays.forEach((day, idx) => {
+            const option = document.createElement('option');
+            option.value = idx;
+            option.textContent = `${day.name} (${day.date})`;
+            modalDaySelect.appendChild(option);
+        });
+    }
+
+    function updateFreeSlotsForDay() {
+        const dayIdx = parseInt(modalDaySelect.value, 10);
+        if (isNaN(dayIdx)) {
+            modalTimeSelect.innerHTML = '<option value="">-- выберите день --</option>';
+            return;
+        }
+        const freeSlots = [];
+        for (let s = 0; s < timeSlots.length; s++) {
+            if (occupancyData[dayIdx][s] === null) {
+                freeSlots.push({ slotIdx: s, time: timeSlots[s] });
+            }
+        }
+        if (freeSlots.length === 0) {
+            modalTimeSelect.innerHTML = '<option value="">😔 нет свободных слотов в этот день</option>';
+        } else {
+            modalTimeSelect.innerHTML = freeSlots.map(fs => `<option value="${fs.slotIdx}">${fs.time} (свободно)</option>`).join('');
+        }
+    }
+
+    function openBookingModalWithPreset(dayIdx, slotIdx) {
+        pendingDayIndex = dayIdx;
+        pendingSlotIndex = slotIdx;
+        // заполняем дни и выбираем нужный
+        populateDays();
+        modalDaySelect.value = dayIdx;
+        updateFreeSlotsForDay();
+        // пытаемся выбрать конкретный слот, если он свободен
+        setTimeout(() => {
+            const optionToSelect = Array.from(modalTimeSelect.options).find(opt => opt.value == slotIdx);
+            if (optionToSelect && occupancyData[dayIdx][slotIdx] === null) {
+                modalTimeSelect.value = slotIdx;
+            } else {
+                // если слот уже занят (например из-за обновления), то просто показываем список
+                if (occupancyData[dayIdx][slotIdx] !== null) {
+                    showToast("Этот слот больше не доступен, выберите другой", 1500);
+                }
+            }
+        }, 50);
+        modal.classList.add('active');
+    }
+
+    function openBookingModalFree() {
+        pendingDayIndex = null;
+        pendingSlotIndex = null;
+        populateDays();
+        modalDaySelect.value = 0;
+        updateFreeSlotsForDay();
+        modal.classList.add('active');
+    }
+
+    function confirmBooking() {
+        const questId = parseInt(modalQuestSelect.value, 10);
+        const dayIdx = parseInt(modalDaySelect.value, 10);
+        const timeSlotValue = modalTimeSelect.value;
+        
+        if (isNaN(dayIdx)) {
+            showToast("Выберите день", 1500);
+            return;
+        }
+        if (!timeSlotValue || timeSlotValue === "") {
+            showToast("Выберите время (свободный слот)", 1500);
+            return;
+        }
+        const slotIdx = parseInt(timeSlotValue, 10);
+        if (isNaN(slotIdx) || slotIdx < 0 || slotIdx >= timeSlots.length) {
+            showToast("Некорректное время", 1500);
+            return;
+        }
+        // проверка что слот все еще свободен
+        if (occupancyData[dayIdx][slotIdx] !== null) {
+            showToast("К сожалению, этот слот уже занят. Обновите список и выберите другой.", 2500);
+            updateFreeSlotsForDay();
+            return;
+        }
+        bookSlot(dayIdx, slotIdx, questId);
+        modal.classList.remove('active');
+        // обновляем выпадающие списки в модалке при следующем открытии
+    }
+
+    function closeModal() {
+        modal.classList.remove('active');
+    }
+
+    // Сохранение цен
+    function savePrices() {
+        const weekdayInput = document.getElementById('weekdayPrice');
+        const weekendInput = document.getElementById('weekendPrice');
+        let newWeekday = parseInt(weekdayInput.value, 10);
+        let newWeekend = parseInt(weekendInput.value, 10);
+        if (isNaN(newWeekday)) newWeekday = 1200;
+        if (isNaN(newWeekend)) newWeekend = 1600;
+        currentWeekdayPrice = newWeekday;
+        currentWeekendPrice = newWeekend;
+        weekdayInput.value = currentWeekdayPrice;
+        weekendInput.value = currentWeekendPrice;
+        renderSchedule();
+        showToast("💰 Цены сохранены", 1500);
+    }
+
+    function randomizeOccupancy() {
+        occupancyData = generateRandomOccupancy();
+        renderSchedule();
+        showToast("🔄 Расписание обновлено", 1500);
+    }
+
+    // Инициализация событий
+    function bindEvents() {
+        document.getElementById('savePricesBtn')?.addEventListener('click', savePrices);
+        document.getElementById('randomizeScheduleBtn')?.addEventListener('click', randomizeOccupancy);
+        document.getElementById('openBookingBtn')?.addEventListener('click', openBookingModalFree);
+        document.getElementById('confirmBookingBtn')?.addEventListener('click', confirmBooking);
+        document.getElementById('closeModalBtn')?.addEventListener('click', closeModal);
+        modalDaySelect?.addEventListener('change', updateFreeSlotsForDay);
+        // закрытие по клику на фон
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+    }
+
+    function init() {
+        bindEvents();
+        renderSchedule();
+        // инициализация выпадающих списков модалки
+        populateDays();
+        updateFreeSlotsForDay();
+    }
+    init();
+</script>
+</body>
+</html>
