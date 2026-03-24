@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Квест-календарь | JSON База данных внизу</title>
+    <title>Квест-календарь | Гибкое ценообразование</title>
     <style>
         * {
             box-sizing: border-box;
@@ -19,7 +19,7 @@
         }
 
         .schedule-container {
-            max-width: 1400px;
+            max-width: 1500px;
             margin: 0 auto;
             background: rgba(255,255,255,0.75);
             border-radius: 2rem;
@@ -47,6 +47,42 @@
             padding-left: 0.8rem;
         }
 
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #cbdde9;
+            padding-bottom: 0;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            background: #eef3fc;
+            border: none;
+            padding: 12px 28px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 30px 30px 0 0;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #4a627a;
+        }
+        .tab-btn.active {
+            background: white;
+            color: #1e4668;
+            border-bottom: 3px solid #ffb347;
+        }
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.2s ease;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .legend {
             display: flex;
             flex-wrap: wrap;
@@ -66,12 +102,6 @@
             gap: 0.8rem;
         }
 
-        .legend-title {
-            font-weight: 600;
-            margin-right: 0.5rem;
-            color: #1f3b4c;
-        }
-
         .quest-badge {
             display: inline-flex;
             align-items: center;
@@ -81,7 +111,6 @@
             border-radius: 40px;
             font-size: 0.8rem;
             font-weight: 500;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
         .color-dot {
@@ -91,7 +120,19 @@
             display: inline-block;
         }
 
-        .refresh-btn {
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+        .status-confirmed { background: #d1fae5; color: #065f46; }
+        .status-cancelled { background: #fee2e2; color: #991b1b; text-decoration: line-through; }
+        .status-pending { background: #fef3c7; color: #92400e; }
+
+        .refresh-btn, .add-service-btn {
             background: white;
             border: 1px solid #bdd4e4;
             padding: 8px 18px;
@@ -99,13 +140,12 @@
             font-weight: 500;
             cursor: pointer;
             font-size: 0.8rem;
-            transition: all 0.2s;
         }
-        .refresh-btn:hover {
-            background-color: #eef3fc;
-            transform: scale(0.97);
+        .add-service-btn {
+            background: #1e6f3f;
+            color: white;
+            border: none;
         }
-
         .booking-btn {
             background: linear-gradient(135deg, #2c5f8a, #1e4668);
             color: white;
@@ -115,14 +155,8 @@
             font-weight: bold;
             font-size: 1rem;
             cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             margin-bottom: 1rem;
             width: 100%;
-        }
-        .booking-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 18px rgba(0,0,0,0.2);
         }
 
         .table-wrapper {
@@ -137,55 +171,50 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 0.85rem;
-            min-width: 900px;
+            min-width: 1000px;
         }
-
         .schedule-table th {
             background: #eef3fc;
             padding: 0.8rem 0.4rem;
-            font-weight: 700;
-            color: #1e3b4f;
             border-bottom: 2px solid #cbdde9;
             text-align: center;
         }
-
-        .day-col {
-            background: #e2edf6;
-            font-weight: bold;
-            text-align: center;
-            vertical-align: middle;
-        }
-
         .schedule-table td {
             padding: 0.5rem 0.3rem;
             border: 1px solid #e2edf5;
             text-align: center;
             vertical-align: middle;
         }
-
+        .day-col {
+            background: #e2edf6;
+            font-weight: bold;
+            text-align: center;
+        }
         .slot-cell {
             font-weight: 500;
+            cursor: pointer;
             transition: all 0.1s;
         }
-
+        .slot-cell:hover {
+            transform: scale(0.98);
+            filter: brightness(0.98);
+        }
         .quest-taken {
             border-radius: 16px;
             font-weight: 600;
             box-shadow: inset 0 0 0 1px rgba(255,255,255,0.4);
         }
-
         .free-slot {
             background-color: #fefef5;
             color: #8da0aa;
             font-style: italic;
-            font-size: 0.8rem;
             cursor: pointer;
         }
-        .free-slot:hover {
-            background-color: #e8f0fe;
-            transform: scale(0.98);
+        .cancelled-slot {
+            opacity: 0.7;
+            filter: grayscale(0.2);
+            text-decoration: line-through;
         }
-
         .quest-1 { background-color: #FFB3BA; color: #6b2e3a; }
         .quest-2 { background-color: #B5EAD7; color: #2c5e3f; }
         .quest-3 { background-color: #C7E9FB; color: #1d5a7a; }
@@ -195,6 +224,8 @@
 
         .weekday-name { font-weight: 800; font-size: 1rem; display: block; }
         .weekday-date { font-size: 0.65rem; color: #4f6f8a; }
+        .total-row td { background: #fff4e0; font-weight: 700; color: #b85c00; }
+        .total-amount { background: #f9eccc; font-weight: bold; }
 
         .price-panel {
             background: white;
@@ -203,107 +234,157 @@
             box-shadow: 0 8px 18px rgba(0,0,0,0.08);
             margin-bottom: 1.5rem;
         }
-
         .price-inputs {
             display: flex;
             flex-wrap: wrap;
             gap: 1.5rem;
             align-items: flex-end;
         }
-
-        .price-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.4rem;
-        }
-
-        .price-group label {
-            font-weight: 600;
-            font-size: 0.8rem;
-        }
-
         .price-input {
             padding: 8px 14px;
             border: 2px solid #d4e2ed;
             border-radius: 28px;
-            width: 160px;
+            width: 180px;
         }
-
         .save-btn {
             background: #1e6f3f;
             color: white;
             border: none;
             padding: 8px 24px;
             border-radius: 40px;
-            font-weight: bold;
             cursor: pointer;
         }
 
-        /* JSON секция внизу */
+        /* Таблица цен */
+        .pricing-calendar {
+            background: white;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+        .pricing-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .pricing-table th {
+            background: #eef3fc;
+            padding: 1rem;
+            text-align: center;
+            font-weight: 700;
+        }
+        .pricing-table td {
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 1px solid #e2edf5;
+            vertical-align: middle;
+        }
+        .date-cell {
+            font-weight: 700;
+            background: #f8fafc;
+        }
+        .price-adjust {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .price-adjust input {
+            width: 100px;
+            padding: 8px;
+            border: 2px solid #d4e2ed;
+            border-radius: 28px;
+            text-align: center;
+        }
+        .adjust-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .adjust-up { background: #dcfce7; color: #15803d; }
+        .adjust-down { background: #fee2e2; color: #991b1b; }
+        .adjust-none { background: #f1f5f9; color: #475569; }
+        .final-price {
+            font-weight: 700;
+            color: #1e4668;
+        }
+        .reset-price-btn {
+            background: #e2e8f0;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+
+        .services-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 1rem;
+        }
+        .services-table th, .services-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e2edf5;
+            text-align: left;
+        }
+        .delete-service {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .add-service-row {
+            background: #f9fafb;
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 1rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .add-service-row input {
+            padding: 8px 12px;
+            border: 2px solid #d4e2ed;
+            border-radius: 28px;
+            flex: 1;
+        }
+
         .json-section-bottom {
             background: #1e2a36;
             border-radius: 1.5rem;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            margin-top: 1.5rem;
             overflow: hidden;
-            margin-top: 0.5rem;
         }
-
         .json-header {
             background: #0f1a24;
             color: #7ec8e0;
-            padding: 1rem 1.2rem;
-            font-weight: bold;
-            font-size: 0.9rem;
-            border-bottom: 2px solid #2c4b64;
+            padding: 1rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 0.5rem;
         }
-
-        .json-header span {
+        .json-content {
+            background: #0f1a24;
+            padding: 1rem;
+            max-height: 400px;
+            overflow: auto;
             font-family: monospace;
-            letter-spacing: 0.5px;
+            font-size: 0.75rem;
+            color: #cee9f0;
         }
-
         .copy-json-btn {
             background: #2c4b64;
             border: none;
             color: white;
             padding: 4px 12px;
             border-radius: 20px;
-            font-size: 0.7rem;
             cursor: pointer;
-            transition: 0.2s;
         }
-        .copy-json-btn:hover {
-            background: #3e6a8c;
-        }
-
-        .json-content {
-            background: #0f1a24;
-            padding: 1rem;
-            overflow-x: auto;
-            max-height: 400px;
-            overflow-y: auto;
-            font-family: 'Courier New', 'Fira Code', monospace;
-            font-size: 0.75rem;
-            line-height: 1.4;
-        }
-
-        .json-content pre {
-            margin: 0;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            color: #cee9f0;
-        }
-
-        .json-key { color: #9cdcfe; }
-        .json-string { color: #ce9178; }
-        .json-number { color: #b5cea8; }
-        .json-boolean { color: #569cd6; }
-        .json-null { color: #569cd6; }
 
         .modal {
             display: none;
@@ -312,30 +393,76 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(4px);
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
             z-index: 2000;
             justify-content: center;
             align-items: center;
+            overflow-y: auto;
         }
         .modal.active { display: flex; }
         .modal-content {
             background: white;
             border-radius: 2rem;
-            max-width: 500px;
+            max-width: 600px;
             width: 90%;
             padding: 2rem;
+            max-height: 90vh;
+            overflow-y: auto;
         }
         .form-group { margin-bottom: 1rem; }
-        .form-group select, .form-group input {
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }
+        .form-group input, .form-group select {
             width: 100%;
-            padding: 10px;
-            border-radius: 28px;
+            padding: 10px 14px;
             border: 2px solid #d4e2ed;
+            border-radius: 28px;
+        }
+        .services-list {
+            margin: 1rem 0;
+            border: 1px solid #e2edf5;
+            border-radius: 1rem;
+            padding: 0.5rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .service-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px;
+            border-bottom: 1px solid #eef2f5;
+        }
+        .price-preview {
+            background: #f0f7ff;
+            padding: 0.8rem;
+            border-radius: 1rem;
+            margin: 1rem 0;
+            text-align: center;
+            font-weight: bold;
         }
         .modal-buttons { display: flex; gap: 1rem; margin-top: 1.5rem; }
-        .btn-primary { background: #1e6f3f; color: white; border: none; padding: 10px; border-radius: 40px; flex:1; cursor: pointer; }
-        .btn-secondary { background: #e2e8f0; border: none; padding: 10px; border-radius: 40px; flex:1; cursor: pointer; }
+        .btn-primary {
+            background: #1e6f3f;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 40px;
+            cursor: pointer;
+            flex: 1;
+        }
+        .btn-secondary {
+            background: #e2e8f0;
+            border: none;
+            padding: 12px;
+            border-radius: 40px;
+            cursor: pointer;
+            flex: 1;
+        }
         .toast-msg {
             position: fixed;
             bottom: 25px;
@@ -349,119 +476,159 @@
             z-index: 2001;
         }
         footer { margin-top: 1rem; text-align: center; font-size: 0.75rem; color: #6e8aa8; }
-        
-        .stats-badge {
-            font-size: 0.7rem;
-            background: #2c4b64;
-            padding: 2px 8px;
-            border-radius: 20px;
-            margin-left: 8px;
-        }
     </style>
 </head>
 <body>
 <div class="schedule-container">
-    <h1>🗄️ Квест-календарь | JSON Database Simulation</h1>
-    <div class="sub">Живая база данных в формате JSON — все изменения (бронирования, цены) мгновенно обновляют структуру внизу страницы</div>
+    <h1>🎮 Квест-календарь | Гибкое ценообразование</h1>
+    <div class="sub">На вкладке "Ценообразование" можно установить индивидуальную наценку/скидку для любой даты</div>
 
-    <div class="legend">
-        <div class="legend-badges">
-            <span class="legend-title">🎭 Квесты:</span>
-            <div class="quest-badge"><span class="color-dot quest-1"></span> Тайна руин</div>
-            <div class="quest-badge"><span class="color-dot quest-2"></span> Драконья бухта</div>
-            <div class="quest-badge"><span class="color-dot quest-3"></span> Зеркальный лабиринт</div>
-            <div class="quest-badge"><span class="color-dot quest-4"></span> Проклятый амулет</div>
-            <div class="quest-badge"><span class="color-dot quest-5"></span> Город ветров</div>
-            <div class="quest-badge"><span class="color-dot quest-6"></span> Логово теней</div>
-        </div>
-        <button class="refresh-btn" id="randomizeScheduleBtn">🔄 Сброс / Рандом</button>
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="schedule">📅 Расписание квестов</button>
+        <button class="tab-btn" data-tab="pricing">💰 Ценообразование</button>
+        <button class="tab-btn" data-tab="services">🎁 Дополнительные услуги</button>
     </div>
 
-    <!-- Кнопка бронирования -->
-    <button id="openBookingBtn" class="booking-btn">📅 + Забронировать квест (обновит JSON)</button>
-
-    <!-- Таблица расписания -->
-    <div class="table-wrapper">
-        <table class="schedule-table">
-            <thead>
-                <tr>
-                    <th style="width:110px;">День / Время</th>
+    <!-- Вкладка расписания -->
+    <div id="schedule-tab" class="tab-content active">
+        <div class="legend">
+            <div class="legend-badges">
+                <span class="legend-title">🎭 Квесты:</span>
+                <div class="quest-badge"><span class="color-dot quest-1"></span> Тайна руин</div>
+                <div class="quest-badge"><span class="color-dot quest-2"></span> Драконья бухта</div>
+                <div class="quest-badge"><span class="color-dot quest-3"></span> Зеркальный лабиринт</div>
+                <div class="quest-badge"><span class="color-dot quest-4"></span> Проклятый амулет</div>
+                <div class="quest-badge"><span class="color-dot quest-5"></span> Город ветров</div>
+                <div class="quest-badge"><span class="color-dot quest-6"></span> Логово теней</div>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+                <span class="status-badge status-confirmed">✅ Подтвержден</span>
+                <span class="status-badge status-pending">⏳ Ожидает</span>
+                <span class="status-badge status-cancelled">❌ Отменен</span>
+                <button class="refresh-btn" id="randomizeScheduleBtn">🔄 Сброс</button>
+            </div>
+        </div>
+        <button id="openBookingBtn" class="booking-btn">📅 + Забронировать квест (с услугами)</button>
+        <div class="table-wrapper">
+            <table class="schedule-table">
+                <thead>
+                    <tr><th style="width:120px;">День / Время</th>
                     <th>10:00</th><th>11:00</th><th>12:00</th><th>13:00</th><th>14:00</th><th>15:00</th><th>16:00</th><th>17:00</th><th>18:00</th>
-                </tr>
-            </thead>
-            <tbody id="schedule-body"></tbody>
-        </table>
-    </div>
-
-    <!-- Блок цен -->
-    <div class="price-panel">
-        <div class="price-inputs">
-            <div class="price-group">
-                <label>📆 Будни (ПН–ПТ)</label>
-                <input type="number" id="weekdayPrice" value="1200" step="100">
+                    <th style="background:#f9eccc;">💰 Дневной доход</th></tr>
+                </thead>
+                <tbody id="schedule-body"></tbody>
+            </table>
+        </div>
+        <div class="price-panel">
+            <div class="price-inputs">
+                <div class="price-group"><label>📆 Будни базовая цена за гостя</label><input type="number" id="weekdayPrice" value="1200" step="100"></div>
+                <div class="price-group"><label>🎉 Выходные базовая цена за гостя</label><input type="number" id="weekendPrice" value="1600" step="100"></div>
+                <button id="savePricesBtn" class="save-btn">💾 Сохранить цены</button>
             </div>
-            <div class="price-group">
-                <label>🎉 Выходные (СБ–ВС)</label>
-                <input type="number" id="weekendPrice" value="1600" step="100">
-            </div>
-            <button id="savePricesBtn" class="save-btn">💾 Сохранить цены</button>
+            <div style="font-size:0.7rem; margin-top:8px; color:#666;">📌 Итоговая цена = базовая × (1 + наценка/100). Наценки настраиваются во вкладке "Ценообразование"</div>
         </div>
     </div>
 
-    <!-- JSON База данных внизу страницы -->
+    <!-- Вкладка ценообразования -->
+    <div id="pricing-tab" class="tab-content">
+        <div class="pricing-calendar">
+            <table class="pricing-table">
+                <thead>
+                    <tr><th>Дата</th><th>День недели</th><th>Базовая цена</th><th>Наценка / Скидка</th><th>Итоговая цена за гостя</th><th></th></tr>
+                </thead>
+                <tbody id="pricing-table-body"></tbody>
+            </table>
+        </div>
+        <div style="margin-top: 1rem; padding: 1rem; background: #fef3c7; border-radius: 1rem;">
+            💡 <strong>Инструкция:</strong> Введите процент наценки (положительное число) или скидки (отрицательное число, например -10). Цена пересчитается автоматически. Нажмите "Сбросить", чтобы вернуть стандартную цену.
+        </div>
+    </div>
+
+    <!-- Вкладка услуг -->
+    <div id="services-tab" class="tab-content">
+        <div style="background: white; border-radius: 1.5rem; padding: 1.5rem;">
+            <h3 style="margin-bottom: 1rem;">🎁 Дополнительные услуги</h3>
+            <table class="services-table">
+                <thead><tr><th>Название</th><th>Цена</th><th></th></tr></thead>
+                <tbody id="servicesListBody"></tbody>
+            </table>
+            <div class="add-service-row">
+                <input type="text" id="newServiceName" placeholder="Название услуги">
+                <input type="number" id="newServicePrice" placeholder="Цена" value="500">
+                <button id="addServiceBtn" class="add-service-btn">➕ Добавить</button>
+            </div>
+        </div>
+    </div>
+
     <div class="json-section-bottom">
         <div class="json-header">
-            <span>🗄️ DATABASE.JSON (симуляция базы данных) <span class="stats-badge" id="jsonStats">обновляется</span></span>
-            <button id="copyJsonBtn" class="copy-json-btn">📋 Копировать JSON</button>
+            <span>🗄️ DATABASE.JSON (с ценами и наценками)</span>
+            <button id="copyJsonBtn" class="copy-json-btn">📋 Копировать</button>
         </div>
-        <div class="json-content" id="jsonViewer">
-            <pre id="jsonPre">Загрузка данных...</pre>
-        </div>
+        <div class="json-content"><pre id="jsonPre">Загрузка...</pre></div>
     </div>
-    <footer>✨ Любое бронирование или изменение цен моментально обновляет JSON-структуру внизу. Данные синхронизированы с "базой".</footer>
+    <footer>✨ Во вкладке "Ценообразование" можно задать индивидуальную наценку/скидку для каждой даты. Цены в расписании обновляются автоматически.</footer>
 </div>
 
 <!-- Модальное окно бронирования -->
 <div id="bookingModal" class="modal">
     <div class="modal-content">
-        <h3>🎯 Забронировать квест</h3>
-        <div class="form-group">
-            <label>Квест:</label>
-            <select id="modalQuestSelect">
-                <option value="0">✨ Тайна руин</option>
-                <option value="1">🐉 Драконья бухта</option>
-                <option value="2">🪞 Зеркальный лабиринт</option>
-                <option value="3">🏺 Проклятый амулет</option>
-                <option value="4">🌪️ Город ветров</option>
-                <option value="5">👤 Логово теней</option>
-            </select>
+        <h3>🎯 Бронирование квеста</h3>
+        <div class="form-group"><label>Квест:</label><select id="modalQuestSelect">
+            <option value="0">✨ Тайна руин</option><option value="1">🐉 Драконья бухта</option>
+            <option value="2">🪞 Зеркальный лабиринт</option><option value="3">🏺 Проклятый амулет</option>
+            <option value="4">🌪️ Город ветров</option><option value="5">👤 Логово теней</option>
+        </select></div>
+        <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+            <div class="form-group" style="flex:1"><label>День:</label><select id="modalDaySelect"></select></div>
+            <div class="form-group" style="flex:1"><label>Время:</label><select id="modalTimeSelect"></select></div>
         </div>
-        <div class="form-group">
-            <label>День:</label>
-            <select id="modalDaySelect"></select>
+        <div class="form-group"><label>👥 Количество гостей:</label><input type="number" id="guestCount" min="1" max="10" value="2"></div>
+        <div class="form-group"><label>🎁 Услуги:</label><div id="servicesChecklist" class="services-list"></div></div>
+        <div class="price-preview" id="pricePreview">💰 Итоговая цена: 0 ₽</div>
+        <div class="form-group"><label>👤 ФИО:</label><input type="text" id="guestName" placeholder="Иванов Иван Иванович"></div>
+        <div style="display:flex; gap:1rem;">
+            <div class="form-group" style="flex:1"><label>Возраст:</label><input type="number" id="guestAge" placeholder="18"></div>
+            <div class="form-group" style="flex:1"><label>Телефон:</label><input type="tel" id="guestPhone" placeholder="+7 900 123-45-67"></div>
         </div>
-        <div class="form-group">
-            <label>Свободное время:</label>
-            <select id="modalTimeSelect"></select>
-        </div>
+        <div class="form-group"><label>Email:</label><input type="email" id="guestEmail" placeholder="client@example.com"></div>
         <div class="modal-buttons">
             <button id="confirmBookingBtn" class="btn-primary">✅ Забронировать</button>
             <button id="closeModalBtn" class="btn-secondary">Отмена</button>
         </div>
     </div>
 </div>
+
+<!-- Модальное окно карточки бронирования -->
+<div id="bookingCardModal" class="modal booking-card-modal">
+    <div class="modal-content">
+        <h3>📋 Карточка бронирования</h3>
+        <div id="bookingCardContent" class="booking-details"></div>
+        <div class="form-group" style="margin-top: 1rem;">
+            <label>📌 Статус бронирования:</label>
+            <select id="statusSelect" class="status-select" style="width:100%; padding:8px; border-radius:28px; border:2px solid #d4e2ed;">
+                <option value="pending">⏳ Ожидает подтверждения</option>
+                <option value="confirmed">✅ Подтвержден</option>
+                <option value="cancelled">❌ Отменен</option>
+            </select>
+        </div>
+        <button id="updateStatusBtn" class="btn-primary" style="margin-top: 0.5rem;">🔄 Обновить статус</button>
+        <button id="closeCardBtn" class="close-card-btn" style="background:#e2e8f0; border:none; padding:10px; border-radius:40px; margin-top:1rem;">Закрыть</button>
+    </div>
+</div>
+
 <div id="toastMsg" class="toast-msg">✅ Готово</div>
 
 <script>
-    // ---------- ДАННЫЕ (СИМУЛЯЦИЯ БД) ----------
+    // ---------- ДАННЫЕ ----------
     const weekDays = [
-        { name: "Понедельник", short: "ПН", date: "24 мар", type: "weekday", dayIndex: 0 },
-        { name: "Вторник", short: "ВТ", date: "25 мар", type: "weekday", dayIndex: 1 },
-        { name: "Среда", short: "СР", date: "26 мар", type: "weekday", dayIndex: 2 },
-        { name: "Четверг", short: "ЧТ", date: "27 мар", type: "weekday", dayIndex: 3 },
-        { name: "Пятница", short: "ПТ", date: "28 мар", type: "weekday", dayIndex: 4 },
-        { name: "Суббота", short: "СБ", date: "29 мар", type: "weekend", dayIndex: 5 },
-        { name: "Воскресенье", short: "ВС", date: "30 мар", type: "weekend", dayIndex: 6 }
+        { name: "Понедельник", date: "24 мар", type: "weekday", dayIndex: 0 },
+        { name: "Вторник", date: "25 мар", type: "weekday", dayIndex: 1 },
+        { name: "Среда", date: "26 мар", type: "weekday", dayIndex: 2 },
+        { name: "Четверг", date: "27 мар", type: "weekday", dayIndex: 3 },
+        { name: "Пятница", date: "28 мар", type: "weekday", dayIndex: 4 },
+        { name: "Суббота", date: "29 мар", type: "weekend", dayIndex: 5 },
+        { name: "Воскресенье", date: "30 мар", type: "weekend", dayIndex: 6 }
     ];
     const timeSlots = ["10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
     const questNames = ["Тайна руин", "Драконья бухта", "Зеркальный лабиринт", "Проклятый амулет", "Город ветров", "Логово теней"];
@@ -469,146 +636,169 @@
     let currentWeekdayPrice = 1200;
     let currentWeekendPrice = 1600;
     
-    // ОСНОВНАЯ БАЗА ДАННЫХ: occupancyData[day][slot] = null или индекс квеста 0-5
+    // Наценки/скидки для каждой даты (в процентах)
+    let priceAdjustments = {};
+    
+    let services = [
+        { id: 1, name: "Фотосессия", price: 800 },
+        { id: 2, name: "Подарочный набор", price: 500 },
+        { id: 3, name: "VIP-зона", price: 1500 }
+    ];
+    let nextServiceId = 4;
+    let bookingsData = [];
     let occupancyData = [];
 
-    function getQuestClass(idx) { return `quest-${idx+1}`; }
-    function getPriceForDay(dayIdx) { return weekDays[dayIdx].type === "weekday" ? currentWeekdayPrice : currentWeekendPrice; }
-
-    // Генерация случайной занятости
-    function generateRandomOccupancy() {
-        const occ = [];
+    // Получить базовую цену для дня
+    function getBasePricePerGuest(dayIdx) {
+        return weekDays[dayIdx].type === "weekday" ? currentWeekdayPrice : currentWeekendPrice;
+    }
+    
+    // Получить итоговую цену с учетом наценки/скидки
+    function getFinalPricePerGuest(dayIdx) {
+        const dateKey = weekDays[dayIdx].date;
+        const adjustment = priceAdjustments[dateKey] || 0;
+        const basePrice = getBasePricePerGuest(dayIdx);
+        return Math.round(basePrice * (1 + adjustment / 100));
+    }
+    
+    // Обновить цены во всех бронированиях
+    function updateAllBookingPrices() {
         for (let d = 0; d < 7; d++) {
-            const slots = [];
+            for (let s = 0; s < timeSlots.length; s++) {
+                if (bookingsData[d]?.[s]) {
+                    const basePerGuest = getFinalPricePerGuest(d);
+                    const servicesTotal = (bookingsData[d][s].services || []).reduce((sum, sv) => sum + sv.price, 0);
+                    bookingsData[d][s].totalPrice = (basePerGuest * bookingsData[d][s].guests) + servicesTotal;
+                }
+            }
+        }
+        renderSchedule();
+        renderPricingTable();
+    }
+
+    function calculateDayIncome(dayIdx) {
+        let total = 0;
+        for (let s = 0; s < timeSlots.length; s++) {
+            const b = bookingsData[dayIdx]?.[s];
+            if (b && b.status !== 'cancelled') total += b.totalPrice;
+        }
+        return total;
+    }
+
+    function generateRandomOccupancy() {
+        const occ = [], bookings = [];
+        const statuses = ['confirmed', 'pending', 'confirmed', 'pending', 'confirmed'];
+        for (let d = 0; d < 7; d++) {
+            occ[d] = []; bookings[d] = [];
+            const finalPrice = getFinalPricePerGuest(d);
             for (let s = 0; s < timeSlots.length; s++) {
                 const isOcc = Math.random() < 0.68;
-                slots.push(isOcc ? Math.floor(Math.random() * 6) : null);
+                if (isOcc) {
+                    const questId = Math.floor(Math.random() * 6);
+                    const guests = Math.floor(Math.random() * 4) + 1;
+                    const randomServices = Math.random() > 0.6 && services.length ? [{ ...services[Math.floor(Math.random() * services.length)] }] : [];
+                    const servicesTotal = randomServices.reduce((sum, sv) => sum + sv.price, 0);
+                    const total = (finalPrice * guests) + servicesTotal;
+                    const status = statuses[Math.floor(Math.random() * statuses.length)];
+                    occ[d][s] = questId;
+                    bookings[d][s] = {
+                        questId, guests, services: randomServices, totalPrice: total,
+                        customer: { name: "Демо-бронь", age: 25, phone: "+7 999 999-99-99", email: "demo@quest.ru" },
+                        bookingTime: new Date().toISOString(),
+                        status: status
+                    };
+                } else { occ[d][s] = null; bookings[d][s] = null; }
             }
-            occ.push(slots);
+            if (occ[d].every(v => v !== null)) { let free = Math.floor(Math.random() * 9); occ[d][free] = null; bookings[d][free] = null; }
         }
-        // гарантия свободных
-        for (let d=0; d<7; d++) if (occ[d].every(v=>v!==null)) occ[d][Math.floor(Math.random()*9)] = null;
-        // фикс для наглядности
-        if (occ[0][0] === null) occ[0][0] = 0;
-        if (occ[1][3] === null) occ[1][3] = 2;
-        if (occ[3][5] === null) occ[3][5] = 4;
-        if (occ[5][7] === null) occ[5][7] = 5;
-        if (occ[6][4] === null) occ[6][4] = 1;
-        return occ;
+        return { occ, bookings };
     }
 
-    // ========== ПОСТРОЕНИЕ JSON-ДЕРЕВА ==========
-    function buildDatabaseJSON() {
-        const database = {
-            meta: {
-                version: "1.0",
-                lastUpdated: new Date().toISOString(),
-                description: "Симуляция базы данных расписания квестов"
-            },
-            priceConfig: {
-                weekdayPrice: currentWeekdayPrice,
-                weekendPrice: currentWeekendPrice,
-                currency: "RUB",
-                note: "Цены применяются к занятым слотам"
-            },
-            quests: questNames.map((name, idx) => ({
-                id: idx,
-                name: name,
-                colorClass: `quest-${idx+1}`,
-                available: true
-            })),
-            schedule: []
-        };
-        
+    // Рендер таблицы цен
+    function renderPricingTable() {
+        const tbody = document.getElementById('pricing-table-body');
+        if (!tbody) return;
+        tbody.innerHTML = '';
         for (let d = 0; d < weekDays.length; d++) {
             const day = weekDays[d];
-            const daySlots = [];
-            for (let s = 0; s < timeSlots.length; s++) {
-                const questId = occupancyData[d][s];
-                const slotData = {
-                    time: timeSlots[s],
-                    isOccupied: questId !== null,
-                    quest: questId !== null ? {
-                        id: questId,
-                        name: questNames[questId]
-                    } : null,
-                    price: questId !== null ? getPriceForDay(d) : null,
-                    dayType: day.type
+            const dateKey = day.date;
+            const basePrice = getBasePricePerGuest(d);
+            const adjustment = priceAdjustments[dateKey] || 0;
+            const finalPrice = getFinalPricePerGuest(d);
+            const adjustClass = adjustment > 0 ? 'adjust-up' : (adjustment < 0 ? 'adjust-down' : 'adjust-none');
+            const adjustText = adjustment > 0 ? `+${adjustment}%` : (adjustment < 0 ? `${adjustment}%` : '—');
+            
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="date-cell">${day.date}</td>
+                <td>${day.name}</td>
+                <td>${basePrice.toLocaleString()} ₽</td>
+                <td>
+                    <div class="price-adjust">
+                        <input type="number" id="adjust-${d}" value="${adjustment}" step="5" placeholder="%">
+                        <span class="adjust-badge ${adjustClass}">${adjustText}</span>
+                    </div>
+                </td>
+                <td class="final-price">${finalPrice.toLocaleString()} ₽</td>
+                <td><button class="reset-price-btn" data-day="${d}">Сбросить</button></td>
+            `;
+            tbody.appendChild(tr);
+            
+            const input = document.getElementById(`adjust-${d}`);
+            input.addEventListener('change', (function(dayIdx, dateKey) {
+                return function() {
+                    let val = parseFloat(input.value);
+                    if (isNaN(val)) val = 0;
+                    if (val > 200) val = 200;
+                    if (val < -90) val = -90;
+                    priceAdjustments[dateKey] = val;
+                    input.value = val;
+                    updateAllBookingPrices();
+                    showToast(`Цена на ${dateKey} ${val >= 0 ? `+${val}%` : `${val}%`}`, 1500);
                 };
-                daySlots.push(slotData);
-            }
-            database.schedule.push({
-                dayId: d,
-                dayName: day.name,
-                date: day.date,
-                dayType: day.type,
-                slots: daySlots
+            })(d, dateKey));
+        }
+        
+        document.querySelectorAll('.reset-price-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const dayIdx = parseInt(btn.dataset.day);
+                const dateKey = weekDays[dayIdx].date;
+                delete priceAdjustments[dateKey];
+                updateAllBookingPrices();
+                showToast(`Сброшена наценка для ${dateKey}`, 1500);
             });
-        }
-        
-        let totalSlots = 7 * timeSlots.length;
-        let occupiedCount = 0;
-        for (let d=0; d<7; d++) {
-            for (let s=0; s<timeSlots.length; s++) {
-                if (occupancyData[d][s] !== null) occupiedCount++;
-            }
-        }
-        database.statistics = {
-            totalSlots: totalSlots,
-            occupiedSlots: occupiedCount,
-            freeSlots: totalSlots - occupiedCount,
-            occupancyRate: ((occupiedCount / totalSlots)*100).toFixed(1) + "%"
-        };
-        
-        return database;
+        });
     }
-    
-    // ОТОБРАЖЕНИЕ JSON с подсветкой
-    function renderJSON() {
-        const dbObject = buildDatabaseJSON();
-        const prettyJson = JSON.stringify(dbObject, null, 2);
-        const pre = document.getElementById('jsonPre');
-        const statsSpan = document.getElementById('jsonStats');
-        if (pre) {
-            let highlighted = prettyJson
-                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-                .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
-                    let cls = 'json-number';
-                    if (/^"/.test(match)) {
-                        if (/:$/.test(match)) cls = 'json-key';
-                        else cls = 'json-string';
-                    } else if (/true|false/.test(match)) cls = 'json-boolean';
-                    else if (/null/.test(match)) cls = 'json-null';
-                    return `<span class="${cls}">${match}</span>`;
-                });
-            pre.innerHTML = highlighted;
-        }
-        if (statsSpan) {
-            statsSpan.textContent = `${dbObject.statistics.occupiedSlots} занято · ${dbObject.statistics.freeSlots} свободно`;
-        }
-    }
-    
-    // Отрисовка таблицы
+
     function renderSchedule() {
         const tbody = document.getElementById('schedule-body');
         if (!tbody) return;
         tbody.innerHTML = '';
         for (let dayIdx = 0; dayIdx < weekDays.length; dayIdx++) {
-            const dayInfo = weekDays[dayIdx];
-            const daySlots = occupancyData[dayIdx];
+            const day = weekDays[dayIdx];
             const tr = document.createElement('tr');
             const tdDay = document.createElement('td');
             tdDay.className = 'day-col';
-            tdDay.innerHTML = `<span class="weekday-name">${dayInfo.name}</span><span class="weekday-date">${dayInfo.date}</span>`;
+            tdDay.innerHTML = `<span class="weekday-name">${day.name}</span><span class="weekday-date">${day.date}</span>`;
             tr.appendChild(tdDay);
+            
             for (let slotIdx = 0; slotIdx < timeSlots.length; slotIdx++) {
-                const questVal = daySlots[slotIdx];
+                const booking = bookingsData[dayIdx]?.[slotIdx];
                 const tdSlot = document.createElement('td');
                 tdSlot.classList.add('slot-cell');
-                if (questVal !== null && questVal >= 0) {
-                    tdSlot.classList.add('quest-taken', getQuestClass(questVal));
-                    const price = getPriceForDay(dayIdx);
-                    tdSlot.innerHTML = `<div style="font-weight:700;">✨ ${questNames[questVal]}</div><div style="font-size:0.7rem;">💰 ${price.toLocaleString()} ₽</div>`;
+                if (booking) {
+                    const isCancelled = booking.status === 'cancelled';
+                    tdSlot.classList.add('quest-taken', `quest-${booking.questId + 1}`);
+                    if (isCancelled) tdSlot.classList.add('cancelled-slot');
+                    const statusText = booking.status === 'confirmed' ? '✅' : booking.status === 'cancelled' ? '❌' : '⏳';
+                    let servicesHtml = booking.services?.length ? `<div style="font-size:0.6rem;">+ ${booking.services.map(s => s.name).join(', ')}</div>` : '';
+                    tdSlot.innerHTML = `<div style="font-weight:700;">✨ ${questNames[booking.questId]}</div>
+                                        <div style="font-size:0.7rem;">👥 ${booking.guests} чел.</div>
+                                        <div style="font-size:0.7rem;">💰 ${booking.totalPrice.toLocaleString()} ₽</div>
+                                        <div style="font-size:0.65rem; margin-top:2px;"><span class="status-badge status-${booking.status}">${statusText}</span></div>
+                                        ${servicesHtml}`;
+                    tdSlot.style.cursor = 'pointer';
+                    tdSlot.addEventListener('click', (function(d, s) { return function(e) { e.stopPropagation(); showBookingCard(d, s); }; })(dayIdx, slotIdx));
                 } else {
                     tdSlot.classList.add('free-slot');
                     tdSlot.innerHTML = `⋆ свободно<br><span style="font-size:0.65rem;">нажмите</span>`;
@@ -617,137 +807,264 @@
                 }
                 tr.appendChild(tdSlot);
             }
+            const tdTotal = document.createElement('td');
+            tdTotal.className = 'total-amount';
+            tdTotal.style.background = '#f9eccc';
+            tdTotal.innerHTML = `💰 ${calculateDayIncome(dayIdx).toLocaleString()} ₽`;
+            tr.appendChild(tdTotal);
             tbody.appendChild(tr);
         }
+        const totalRow = document.createElement('tr');
+        totalRow.className = 'total-row';
+        const labelCell = document.createElement('td');
+        labelCell.colSpan = timeSlots.length + 1;
+        labelCell.style.textAlign = 'right';
+        labelCell.innerHTML = '🏆 ИТОГО ЗА НЕДЕЛЮ (только подтвержденные):';
+        totalRow.appendChild(labelCell);
+        let weekTotal = 0;
+        for (let d = 0; d < 7; d++) weekTotal += calculateDayIncome(d);
+        const totalCell = document.createElement('td');
+        totalCell.style.background = '#ffd966';
+        totalCell.style.fontWeight = '800';
+        totalCell.innerHTML = `💰 ${weekTotal.toLocaleString()} ₽`;
+        totalRow.appendChild(totalCell);
+        tbody.appendChild(totalRow);
         renderJSON();
     }
-    
-    // Бронирование
-    function bookSlot(dayIdx, slotIdx, questId) {
-        if (occupancyData[dayIdx][slotIdx] !== null) {
-            showToast("❌ Слот уже занят!", 1500);
-            return false;
+
+    function renderServicesList() {
+        const tbody = document.getElementById('servicesListBody');
+        if (tbody) {
+            tbody.innerHTML = '';
+            services.forEach(s => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${escapeHtml(s.name)}</td><td>${s.price.toLocaleString()} ₽</td><td><button class="delete-service" data-id="${s.id}">🗑 Удалить</button></td>`;
+                tbody.appendChild(tr);
+            });
+            document.querySelectorAll('.delete-service').forEach(btn => {
+                btn.addEventListener('click', () => { services = services.filter(s => s.id != btn.dataset.id); renderServicesList(); renderJSON(); showToast("Услуга удалена", 1500); });
+            });
         }
+    }
+
+    function addService() {
+        const name = document.getElementById('newServiceName')?.value.trim();
+        const price = parseInt(document.getElementById('newServicePrice')?.value);
+        if (!name) return showToast("Введите название", 1500);
+        if (isNaN(price) || price <= 0) return showToast("Введите цену", 1500);
+        services.push({ id: nextServiceId++, name, price });
+        renderServicesList();
+        document.getElementById('newServiceName').value = '';
+        showToast(`Услуга "${name}" добавлена`, 1500);
+        renderJSON();
+    }
+
+    function buildDatabaseJSON() {
+        const adjustmentsArray = weekDays.map(day => ({
+            date: day.date,
+            dayName: day.name,
+            adjustmentPercent: priceAdjustments[day.date] || 0,
+            finalPricePerGuest: getFinalPricePerGuest(day.dayIndex)
+        }));
+        return {
+            meta: { version: "7.0", lastUpdated: new Date().toISOString() },
+            priceConfig: { weekdayBasePrice: currentWeekdayPrice, weekendBasePrice: currentWeekendPrice },
+            priceAdjustments: adjustmentsArray,
+            quests: questNames.map((n, i) => ({ id: i, name: n })),
+            additionalServices: services,
+            schedule: weekDays.map((day, d) => ({
+                dayName: day.name, date: day.date,
+                slots: timeSlots.map((time, s) => {
+                    const b = bookingsData[d]?.[s];
+                    return { time, isOccupied: !!b, quest: b ? { id: b.questId, name: questNames[b.questId] } : null, guests: b?.guests, services: b?.services || [], totalPrice: b?.totalPrice, customer: b?.customer, status: b?.status || null };
+                }),
+                dailyIncome: calculateDayIncome(d)
+            })),
+            weekTotalIncome: [0,1,2,3,4,5,6].reduce((s, d) => s + calculateDayIncome(d), 0)
+        };
+    }
+
+    function renderJSON() {
+        document.getElementById('jsonPre').innerHTML = JSON.stringify(buildDatabaseJSON(), null, 2);
+    }
+
+    function bookSlot(dayIdx, slotIdx, questId, guests, selectedServices, customer) {
+        if (bookingsData[dayIdx]?.[slotIdx]) return false;
+        const pricePerGuest = getFinalPricePerGuest(dayIdx);
+        const servicesTotal = selectedServices.reduce((s, sv) => s + sv.price, 0);
+        const totalPrice = (pricePerGuest * guests) + servicesTotal;
         occupancyData[dayIdx][slotIdx] = questId;
+        bookingsData[dayIdx][slotIdx] = { 
+            questId, guests, services: selectedServices, totalPrice, 
+            customer, bookingTime: new Date().toISOString(),
+            status: 'pending'
+        };
         renderSchedule();
-        showToast(`✅ Забронирован: ${weekDays[dayIdx].name} ${timeSlots[slotIdx]} — ${questNames[questId]}`, 2000);
+        showToast(`✅ Забронировано!`, 2000);
         return true;
     }
-    
-    function showToast(msg, duration=2000) {
+
+    function showToast(msg, duration = 2000) {
         const toast = document.getElementById('toastMsg');
         toast.textContent = msg;
         toast.style.opacity = '1';
         setTimeout(() => toast.style.opacity = '0', duration);
     }
-    
-    // Модальное окно
+
+    function escapeHtml(str) { return String(str).replace(/[&<>]/g, function(m) { return m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'; }); }
+
+    let currentCardDay = null, currentCardSlot = null;
+    function showBookingCard(dayIdx, slotIdx) {
+        const booking = bookingsData[dayIdx]?.[slotIdx];
+        if (!booking) return;
+        currentCardDay = dayIdx;
+        currentCardSlot = slotIdx;
+        const day = weekDays[dayIdx];
+        const statusText = { confirmed: '✅ Подтвержден', pending: '⏳ Ожидает', cancelled: '❌ Отменен' };
+        const servicesHtml = booking.services?.length ? booking.services.map(s => `<span class="services-badge">${escapeHtml(s.name)} (${s.price} ₽)</span>`).join('') : '<span>—</span>';
+        const content = document.getElementById('bookingCardContent');
+        content.innerHTML = `
+            <div class="detail-row"><div class="detail-label">📅 Дата:</div><div class="detail-value">${day.name}, ${day.date} • ${timeSlots[slotIdx]}</div></div>
+            <div class="detail-row"><div class="detail-label">🎭 Квест:</div><div class="detail-value">${escapeHtml(questNames[booking.questId])}</div></div>
+            <div class="detail-row"><div class="detail-label">👥 Гостей:</div><div class="detail-value">${booking.guests} чел.</div></div>
+            <div class="detail-row"><div class="detail-label">💰 Цена за гостя:</div><div class="detail-value">${getFinalPricePerGuest(dayIdx).toLocaleString()} ₽</div></div>
+            <div class="detail-row"><div class="detail-label">🎁 Услуги:</div><div class="detail-value">${servicesHtml}</div></div>
+            <div class="detail-row"><div class="detail-label">💵 Итого:</div><div class="detail-value"><strong>${booking.totalPrice.toLocaleString()} ₽</strong></div></div>
+            <div class="detail-row"><div class="detail-label">📌 Статус:</div><div class="detail-value"><span class="status-badge status-${booking.status}">${statusText[booking.status]}</span></div></div>
+            <div class="detail-row"><div class="detail-label">👤 Клиент:</div><div class="detail-value">${escapeHtml(booking.customer.name)}</div></div>
+            <div class="detail-row"><div class="detail-label">📞 Телефон:</div><div class="detail-value">${escapeHtml(booking.customer.phone)}</div></div>
+        `;
+        document.getElementById('statusSelect').value = booking.status;
+        document.getElementById('bookingCardModal').classList.add('active');
+    }
+
+    function updateBookingStatus() {
+        if (currentCardDay === null || currentCardSlot === null) return;
+        const newStatus = document.getElementById('statusSelect').value;
+        if (bookingsData[currentCardDay]?.[currentCardSlot]) {
+            bookingsData[currentCardDay][currentCardSlot].status = newStatus;
+            renderSchedule();
+            showToast(`Статус изменен`, 1500);
+            document.getElementById('bookingCardModal').classList.remove('active');
+        }
+    }
+
     const modal = document.getElementById('bookingModal');
     const modalDaySelect = document.getElementById('modalDaySelect');
     const modalTimeSelect = document.getElementById('modalTimeSelect');
-    let presetDay = null, presetSlot = null;
-    
-    function populateDays() {
-        modalDaySelect.innerHTML = '';
-        weekDays.forEach((d, idx) => {
-            let opt = document.createElement('option');
-            opt.value = idx;
-            opt.textContent = `${d.name} (${d.date})`;
-            modalDaySelect.appendChild(opt);
+    const servicesChecklist = document.getElementById('servicesChecklist');
+    let pendingDay = null, pendingSlot = null;
+
+    function updateServicesChecklist() {
+        if (!servicesChecklist) return;
+        servicesChecklist.innerHTML = '';
+        services.forEach(s => {
+            const div = document.createElement('div');
+            div.className = 'service-checkbox';
+            div.innerHTML = `<input type="checkbox" value="${s.id}" data-price="${s.price}"><label>${escapeHtml(s.name)} — ${s.price} ₽</label>`;
+            servicesChecklist.appendChild(div);
         });
     }
-    
+
+    function updatePricePreview() {
+        const dayIdx = parseInt(modalDaySelect.value);
+        const guests = parseInt(document.getElementById('guestCount').value) || 1;
+        let total = getFinalPricePerGuest(dayIdx) * guests;
+        servicesChecklist.querySelectorAll('input:checked').forEach(cb => total += parseInt(cb.dataset.price));
+        document.getElementById('pricePreview').innerHTML = `💰 Итоговая цена: ${total.toLocaleString()} ₽`;
+    }
+
+    function populateDays() {
+        modalDaySelect.innerHTML = weekDays.map((d, i) => `<option value="${i}">${d.name} (${d.date})</option>`).join('');
+    }
+
     function updateFreeSlots() {
-        let dayIdx = parseInt(modalDaySelect.value);
-        if (isNaN(dayIdx)) return;
-        let free = [];
-        for (let s=0; s<timeSlots.length; s++) {
-            if (occupancyData[dayIdx][s] === null) free.push({slotIdx:s, time:timeSlots[s]});
-        }
-        modalTimeSelect.innerHTML = free.length ? free.map(f => `<option value="${f.slotIdx}">${f.time} (свободно)</option>`).join('') : '<option value="">Нет свободных слотов</option>';
-        if (presetDay === dayIdx && presetSlot !== null && occupancyData[dayIdx][presetSlot] === null) {
-            let optExists = Array.from(modalTimeSelect.options).find(o => o.value == presetSlot);
-            if (optExists) modalTimeSelect.value = presetSlot;
-        }
+        const dayIdx = parseInt(modalDaySelect.value);
+        const free = [];
+        for (let s = 0; s < timeSlots.length; s++) if (!bookingsData[dayIdx]?.[s]) free.push({ slotIdx: s, time: timeSlots[s] });
+        modalTimeSelect.innerHTML = free.length ? free.map(f => `<option value="${f.slotIdx}">${f.time}</option>`).join('') : '<option value="">Нет свободных слотов</option>';
+        if (pendingDay === dayIdx && pendingSlot !== null && !bookingsData[dayIdx]?.[pendingSlot]) modalTimeSelect.value = pendingSlot;
+        updatePricePreview();
     }
-    
-    function openBookingWithPreset(dayIdx, slotIdx) {
-        presetDay = dayIdx;
-        presetSlot = slotIdx;
-        populateDays();
-        modalDaySelect.value = dayIdx;
-        updateFreeSlots();
-        modal.classList.add('active');
-    }
-    
-    function openBookingFree() {
-        presetDay = null;
-        presetSlot = null;
-        populateDays();
-        modalDaySelect.value = 0;
-        updateFreeSlots();
-        modal.classList.add('active');
-    }
-    
+
+    function openBookingWithPreset(dayIdx, slotIdx) { pendingDay = dayIdx; pendingSlot = slotIdx; populateDays(); modalDaySelect.value = dayIdx; updateFreeSlots(); updateServicesChecklist(); modal.classList.add('active'); document.getElementById('guestCount').value = 2; ['guestName','guestAge','guestPhone','guestEmail'].forEach(id => document.getElementById(id).value = ''); updatePricePreview(); servicesChecklist.querySelectorAll('input').forEach(cb => cb.checked = false); }
+    function openBookingFree() { pendingDay = null; populateDays(); modalDaySelect.value = 0; updateFreeSlots(); updateServicesChecklist(); modal.classList.add('active'); document.getElementById('guestCount').value = 2; ['guestName','guestAge','guestPhone','guestEmail'].forEach(id => document.getElementById(id).value = ''); updatePricePreview(); servicesChecklist.querySelectorAll('input').forEach(cb => cb.checked = false); }
     function confirmBooking() {
-        let questId = parseInt(document.getElementById('modalQuestSelect').value);
-        let dayIdx = parseInt(modalDaySelect.value);
-        let slotVal = modalTimeSelect.value;
-        if (!slotVal || slotVal === "") { showToast("Выберите свободное время", 1500); return; }
-        let slotIdx = parseInt(slotVal);
-        if (isNaN(slotIdx)) return;
-        if (occupancyData[dayIdx][slotIdx] !== null) { showToast("Слот больше не доступен", 1500); updateFreeSlots(); return; }
-        bookSlot(dayIdx, slotIdx, questId);
+        const questId = parseInt(document.getElementById('modalQuestSelect').value);
+        const dayIdx = parseInt(modalDaySelect.value);
+        const slotVal = modalTimeSelect.value;
+        if (!slotVal) return showToast("Выберите время", 1500);
+        const slotIdx = parseInt(slotVal);
+        const guests = parseInt(document.getElementById('guestCount').value) || 1;
+        const selected = Array.from(servicesChecklist.querySelectorAll('input:checked')).map(cb => { const s = services.find(sv => sv.id == cb.value); return s ? { ...s } : null; }).filter(Boolean);
+        const name = document.getElementById('guestName').value.trim();
+        const age = parseInt(document.getElementById('guestAge').value);
+        const phone = document.getElementById('guestPhone').value.trim();
+        const email = document.getElementById('guestEmail').value.trim();
+        if (!name) return showToast("Введите ФИО", 1500);
+        if (isNaN(age) || age < 6 || age > 99) return showToast("Возраст 6-99", 1500);
+        if (!phone) return showToast("Введите телефон", 1500);
+        if (!email || !email.includes('@')) return showToast("Введите email", 1500);
+        if (bookingsData[dayIdx]?.[slotIdx]) return showToast("Слот уже занят", 1500);
+        bookSlot(dayIdx, slotIdx, questId, guests, selected, { name, age, phone, email });
         modal.classList.remove('active');
     }
-    
     function closeModal() { modal.classList.remove('active'); }
-    
-    // Сохранение цен
+    function closeCardModal() { document.getElementById('bookingCardModal').classList.remove('active'); }
+
     function savePrices() {
-        let wd = parseInt(document.getElementById('weekdayPrice').value);
-        let we = parseInt(document.getElementById('weekendPrice').value);
+        const wd = parseInt(document.getElementById('weekdayPrice').value);
+        const we = parseInt(document.getElementById('weekendPrice').value);
         if (!isNaN(wd)) currentWeekdayPrice = wd;
         if (!isNaN(we)) currentWeekendPrice = we;
-        document.getElementById('weekdayPrice').value = currentWeekdayPrice;
-        document.getElementById('weekendPrice').value = currentWeekendPrice;
-        renderSchedule();
-        showToast("💰 Цены сохранены, JSON обновлен", 1500);
+        updateAllBookingPrices();
+        showToast("💰 Базовые цены сохранены", 1500);
     }
     
     function randomizeAll() {
-        occupancyData = generateRandomOccupancy();
+        const nd = generateRandomOccupancy();
+        occupancyData = nd.occ;
+        bookingsData = nd.bookings;
         renderSchedule();
-        showToast("🔄 Расписание сброшено (JSON обновлен)", 1500);
+        renderPricingTable();
+        showToast("🔄 Расписание сброшено", 1500);
     }
-    
-    function copyJSON() {
-        const db = buildDatabaseJSON();
-        const jsonStr = JSON.stringify(db, null, 2);
-        navigator.clipboard.writeText(jsonStr).then(() => showToast("📋 JSON скопирован в буфер", 1200));
-    }
-    
-    // Инициализация
-    function init() {
-        occupancyData = generateRandomOccupancy();
-        renderSchedule();
-        bindEvents();
-        populateDays();
-        updateFreeSlots();
-    }
-    
+    function copyJSON() { navigator.clipboard.writeText(JSON.stringify(buildDatabaseJSON(), null, 2)).then(() => showToast("📋 JSON скопирован", 1200)); }
+
     function bindEvents() {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`${btn.dataset.tab}-tab`).classList.add('active');
+            btn.classList.add('active');
+            if (btn.dataset.tab === 'services') renderServicesList();
+            if (btn.dataset.tab === 'pricing') renderPricingTable();
+        }));
         document.getElementById('savePricesBtn')?.addEventListener('click', savePrices);
         document.getElementById('randomizeScheduleBtn')?.addEventListener('click', randomizeAll);
         document.getElementById('openBookingBtn')?.addEventListener('click', openBookingFree);
         document.getElementById('confirmBookingBtn')?.addEventListener('click', confirmBooking);
         document.getElementById('closeModalBtn')?.addEventListener('click', closeModal);
+        document.getElementById('closeCardBtn')?.addEventListener('click', closeCardModal);
+        document.getElementById('updateStatusBtn')?.addEventListener('click', updateBookingStatus);
         document.getElementById('copyJsonBtn')?.addEventListener('click', copyJSON);
-        modalDaySelect?.addEventListener('change', updateFreeSlots);
-        modal?.addEventListener('click', (e) => { if(e.target === modal) closeModal(); });
+        document.getElementById('addServiceBtn')?.addEventListener('click', addService);
+        modalDaySelect?.addEventListener('change', () => { updateFreeSlots(); updatePricePreview(); });
+        document.getElementById('guestCount')?.addEventListener('input', updatePricePreview);
+        servicesChecklist?.addEventListener('change', updatePricePreview);
+        modal?.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        document.getElementById('bookingCardModal')?.addEventListener('click', (e) => { if (e.target === document.getElementById('bookingCardModal')) closeCardModal(); });
     }
+
+    let initData = generateRandomOccupancy();
+    occupancyData = initData.occ;
+    bookingsData = initData.bookings;
     
-    init();
+    renderSchedule();
+    bindEvents();
+    populateDays();
+    renderServicesList();
+    renderPricingTable();
 </script>
 </body>
 </html>
