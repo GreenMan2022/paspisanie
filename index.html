@@ -104,6 +104,15 @@
             color: #1e293b;
         }
 
+        .price-table th, .price-table td {
+            text-align: center;
+        }
+
+        .price-table th:first-child, .price-table td:first-child {
+            text-align: left;
+            font-weight: 500;
+        }
+
         input, select, textarea {
             border-radius: 12px;
             border: 1px solid #cfdfed;
@@ -132,12 +141,6 @@
 
         button.primary:hover:not(:disabled) {
             background: #1e3a8a;
-        }
-
-        button.primary:disabled {
-            background: #cbd5e1;
-            cursor: not-allowed;
-            color: #64748b;
         }
 
         button.small {
@@ -192,28 +195,59 @@
             margin: 16px 0 0;
         }
 
-        .success-note {
-            background: #dcfce7;
-            color: #166534;
-            border-left: 4px solid #22c55e;
-        }
-
-        .error-note {
-            background: #fee2e2;
-            color: #991b1b;
-            border-left: 4px solid #ef4444;
-        }
-
-        .status-badge {
+        .booking-badge {
             display: inline-block;
-            padding: 4px 10px;
-            border-radius: 20px;
+            padding: 2px 8px;
+            border-radius: 12px;
             font-size: 0.7rem;
-            font-weight: 500;
+            font-weight: 600;
         }
 
-        .status-active { background: #dcfce7; color: #166534; }
-        .status-inactive { background: #fee2e2; color: #991b1b; }
+        .badge-private {
+            background: #f97316;
+            color: white;
+        }
+
+        .badge-public {
+            background: #10b981;
+            color: white;
+        }
+
+        .time-slots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .slot-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 12px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .slot-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .slot-card.fully-booked {
+            background: #e2e8f0;
+            opacity: 0.7;
+        }
+
+        .slot-card.selected {
+            border: 2px solid #1e40af;
+            background: #eef2ff;
+        }
+
+        .slot-time {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
 
         .total-price {
             font-size: 1.8rem;
@@ -221,32 +255,14 @@
             color: #1e40af;
         }
 
-        .price-breakdown {
-            font-size: 0.8rem;
-            color: #4b5563;
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 1px solid #e5e7eb;
-        }
-
-        .checkbox-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-top: 10px;
-        }
-
-        .checkbox-item {
+        .checkbox-label {
             display: flex;
             align-items: center;
             gap: 8px;
-            background: white;
-            padding: 6px 14px;
-            border-radius: 40px;
-            border: 1px solid #e2e8f0;
+            cursor: pointer;
         }
 
-        .checkbox-item input {
+        .checkbox-label input {
             width: 18px;
             height: 18px;
             margin: 0;
@@ -264,178 +280,96 @@
         <button class="tab-btn" data-tab="tab6">🏢 Помещения</button>
         <button class="tab-btn" data-tab="tab7">👥 Групповые</button>
         <button class="tab-btn" data-tab="tab8">🎫 Промокоды</button>
-        <button class="tab-btn active" data-tab="tab9">📝 Бронирования</button>
+        <button class="tab-btn" data-tab="tab9">📝 Бронирования</button>
+        <button class="tab-btn active" data-tab="tab10">⚙️ Управление слотами</button>
     </div>
 
-    <!-- Вкладка 1: Цены (таблица) -->
-    <div id="tab1" class="tab-pane">
-        <h3>🗓️ Таблица цен (за 1 человека)</h3>
-        <div class="table-wrapper">
-            <table class="price-table">
-                <thead>汽<th>ДАТА</th><th>10:00</th><th>11:00</th><th>12:00</th><th>13:00</th><th>14:00</th><th>15:00</th><th>16:00</th><th>17:00</th></thead>
-                <tbody id="priceGridBody"></tbody>
-            </table>
-        </div>
-        <div class="info-note">💰 Цена указана за 1 человека. Итоговая сумма = цена × количество гостей, с применением групповых скидок и промокодов.</div>
-    </div>
-
-    <!-- Вкладка 2: ШАБЛОНЫ ЦЕН (основной раздел) -->
-    <div id="tab2" class="tab-pane">
-        <h3>📋 Шаблоны цен (базовые цены за 1 человека)</h3>
-        <div class="field-group" style="max-width: 300px; margin-bottom: 20px;">
-            <label>Название шаблона</label>
-            <input type="text" id="templateName" value="Основной шаблон">
-        </div>
-        <div class="table-wrapper">
-            <table>
-                <thead><tr><th>День недели</th><th>УТРО (06:00-12:00)</th><th>ДЕНЬ (12:00-18:00)</th><th>ВЕЧЕР (18:00-23:00)</th></tr></thead>
-                <tbody id="priceTemplateBody"></tbody>
-            </table>
-        </div>
-        <button id="saveTemplateBtn" class="primary">💾 СОХРАНИТЬ ШАБЛОН</button>
-        <div class="info-note">⚙️ Здесь задаются базовые цены для каждого дня недели и временного интервала. Цены применяются ко всем датам, если не переопределены особыми политиками.</div>
-    </div>
-
-    <!-- Вкладка 3: Особые политики -->
-    <div id="tab3" class="tab-pane">
-        <h3>🎯 Особые политики (наценки/скидки на конкретные даты)</h3>
-        <div class="flex-form">
-            <div class="field-group"><label>Название</label><input id="policyName" placeholder="8 марта"></div>
-            <div class="field-group"><label>Дата / диапазон</label><input id="policyDate" placeholder="08.03. или 01.03-10.03"></div>
-            <div class="field-group"><label>%</label><input id="policyPercent" placeholder="+10"></div>
-            <button id="addPolicyBtn" class="primary">➕ Добавить</button>
-        </div>
-        <div class="table-wrapper">
-            <table><thead><tr><th>Название</th><th>Дата / промежуток</th><th>Коэффициент</th><th></th></tr></thead>
-            <tbody id="specialPoliciesList"></tbody></table>
-        </div>
-    </div>
-
-    <!-- Вкладка 4: Расписание -->
-    <div id="tab4" class="tab-pane">
-        <h3>📆 Расписание (привязка политик к периодам)</h3>
-        <div class="flex-form">
-            <div class="field-group"><label>Название отрезка</label><input id="segmentName" placeholder="Март"></div>
-            <div class="field-group"><label>Период</label><input id="segmentRange" placeholder="01.03-31.03"></div>
-            <button id="addSegmentBtn" class="primary">➕ Разместить</button>
-        </div>
-        <div class="table-wrapper">
-            <table><thead><tr><th>Название</th><th>Период</th><th>Политики</th><th></th></tr></thead>
-            <tbody id="scheduleList"></tbody></table>
-        </div>
-    </div>
-
-    <!-- Вкладка 5: Сценарии -->
-    <div id="tab5" class="tab-pane">
-        <h3>🎮 Сценарии</h3>
-        <div class="two-columns">
-            <div>
-                <input id="scenarioName" placeholder="Название сценария">
-                <input id="scenarioDuration" type="number" placeholder="Длительность (мин)">
-                <input id="scenarioDifficulty" type="number" placeholder="Сложность 1-5">
-                <input id="scenarioPlayers" placeholder="Кол-во игроков (2-6)">
-                <textarea id="scenarioDescription" placeholder="Описание"></textarea>
-                <select id="scenarioStatus"><option value="active">Активен</option><option value="inactive">Неактивен</option></select>
-                <button id="addScenarioBtn" class="primary" style="margin-top: 16px;">💾 Сохранить</button>
-            </div>
-            <div>
-                <div class="table-wrapper"><table><thead><tr><th>Название</th><th>Длит</th><th>Сложн</th><th>Игроки</th><th>Статус</th><th></th></tr></thead>
-                <tbody id="scenariosList"></tbody></table></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Вкладка 6: Помещения -->
-    <div id="tab6" class="tab-pane">
-        <h3>🏢 Помещения</h3>
-        <div class="two-columns">
-            <div>
-                <input id="roomName" placeholder="Название комнаты">
-                <div class="card" style="margin-top: 16px;">
-                    <label>🎮 Выберите сценарии для комнаты:</label>
-                    <div id="roomScenariosCheckboxContainer" class="checkbox-group"></div>
-                </div>
-                <button id="addRoomBtn" class="primary" style="margin-top: 16px;">🏠 Сохранить помещение</button>
-            </div>
-            <div>
-                <div class="table-wrapper"><table><thead><tr><th>Комната</th><th>Сценарии</th><th></th></tr></thead>
-                <tbody id="roomsList"></tbody></table></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Вкладка 7: Групповые политики -->
-    <div id="tab7" class="tab-pane">
-        <h3>👥 Групповые политики (скидка от количества гостей)</h3>
-        <div class="flex-form">
-            <div class="field-group"><label>Название</label><input id="groupPolicyName" placeholder="Компания друзей"></div>
-            <div class="field-group"><label>От (чел)</label><input id="groupMinGuests" type="number" placeholder="4"></div>
-            <div class="field-group"><label>До (чел)</label><input id="groupMaxGuests" type="number" placeholder="6"></div>
-            <div class="field-group"><label>Скидка %</label><input id="groupDiscount" type="number" placeholder="10"></div>
-            <button id="addGroupPolicyBtn" class="primary">➕ Добавить</button>
-        </div>
-        <div class="table-wrapper">
-            <table><thead><tr><th>Название</th><th>Кол-во гостей</th><th>Скидка</th><th></th></tr></thead>
-            <tbody id="groupPoliciesList"></tbody></table>
-        </div>
-        <div class="info-note">🎯 Скидка применяется к общей сумме (цена за человека × количество гостей). Пример: 100₽/чел × 4 гостя = 400₽, скидка 10% = 360₽.</div>
-    </div>
-
-    <!-- Вкладка 8: Промокоды -->
-    <div id="tab8" class="tab-pane">
-        <h3>🎫 Промокоды</h3>
-        <div class="flex-form">
-            <div class="field-group"><label>Код</label><input id="promoCode" placeholder="WELCOME10"></div>
-            <div class="field-group"><label>Тип</label><select id="promoType"><option value="percent">%</option><option value="fixed">Фикс. руб.</option></select></div>
-            <div class="field-group"><label>Значение</label><input id="promoValue" type="number"></div>
-            <div class="field-group"><label>Мин. сумма</label><input id="promoMinSum" type="number"></div>
-            <div class="field-group"><label>Лимит</label><input id="promoMaxUses" type="number" placeholder="0=безлимит"></div>
-            <button id="addPromoBtn" class="primary">➕ Добавить</button>
-        </div>
-        <div class="table-wrapper">
-            <table><thead><tr><th>Код</th><th>Скидка</th><th>Мин. сумма</th><th>Осталось</th><th></th></tr></thead>
-            <tbody id="promoCodesList"></tbody></table>
-        </div>
-    </div>
+    <!-- Вкладка 1-8: краткое содержание -->
+    <div id="tab1" class="tab-pane"><h3>🗓️ Таблица цен</h3><div class="table-wrapper"><table class="price-table"><thead><tr><th>ДАТА</th><th>10:00</th><th>11:00</th><th>12:00</th><th>13:00</th><th>14:00</th><th>15:00</th><th>16:00</th><th>17:00</th></tr></thead><tbody id="priceGridBody"></tbody></table></div></div>
+    <div id="tab2" class="tab-pane"><h3>📋 Шаблоны цен</h3><div class="table-wrapper"><table><thead><tr><th>День</th><th>Утро</th><th>День</th><th>Вечер</th></tr></thead><tbody id="priceTemplateBody"></tbody></table></div><button id="saveTemplateBtn" class="primary">Сохранить</button></div>
+    <div id="tab3" class="tab-pane"><h3>🎯 Особые политики</h3><div class="flex-form"><div class="field-group"><label>Название</label><input id="policyName"></div><div class="field-group"><label>Дата</label><input id="policyDate"></div><div class="field-group"><label>%</label><input id="policyPercent"></div><button id="addPolicyBtn">+</button></div><div class="table-wrapper"><table><thead><tr><th>Название</th><th>Дата</th><th>%</th><th></th></tr></thead><tbody id="specialPoliciesList"></tbody></table></div></div>
+    <div id="tab4" class="tab-pane"><h3>📆 Расписание</h3><div class="flex-form"><div class="field-group"><label>Название</label><input id="segmentName"></div><div class="field-group"><label>Период</label><input id="segmentRange"></div><button id="addSegmentBtn">+</button></div><div class="table-wrapper"><table><thead><tr><th>Название</th><th>Период</th><th>Политики</th><th></th></tr></thead><tbody id="scheduleList"></tbody></table></div></div>
+    <div id="tab5" class="tab-pane"><h3>🎮 Сценарии</h3><div class="two-columns"><div><input id="scenarioName" placeholder="Название"><input id="scenarioDuration" placeholder="Длительность"><input id="scenarioDifficulty" placeholder="Сложность"><input id="scenarioPlayers" placeholder="Игроки"><textarea id="scenarioDescription" placeholder="Описание"></textarea><select id="scenarioStatus"><option value="active">Активен</option><option value="inactive">Неактивен</option></select><button id="addScenarioBtn" class="primary">Сохранить</button></div><div><div class="table-wrapper"><table><thead><tr><th>Название</th><th>Длит</th><th>Сложн</th><th>Игроки</th><th>Статус</th><th></th></tr></thead><tbody id="scenariosList"></tbody></table></div></div></div></div>
+    <div id="tab6" class="tab-pane"><h3>🏢 Помещения</h3><div class="two-columns"><div><input id="roomName" placeholder="Название"><div id="roomScenariosCheckboxContainer" class="card"></div><button id="addRoomBtn" class="primary">Сохранить</button></div><div><div class="table-wrapper"><table><thead><tr><th>Комната</th><th>Сценарии</th><th></th></tr></thead><tbody id="roomsList"></tbody></table></div></div></div></div>
+    <div id="tab7" class="tab-pane"><h3>👥 Групповые политики</h3><div class="flex-form"><div class="field-group"><label>Название</label><input id="groupPolicyName"></div><div class="field-group"><label>От</label><input id="groupMinGuests" type="number"></div><div class="field-group"><label>До</label><input id="groupMaxGuests" type="number"></div><div class="field-group"><label>Скидка %</label><input id="groupDiscount" type="number"></div><button id="addGroupPolicyBtn">+</button></div><div class="table-wrapper"><table><thead><tr><th>Название</th><th>Гости</th><th>Скидка</th><th></th></tr></thead><tbody id="groupPoliciesList"></tbody></table></div></div>
+    <div id="tab8" class="tab-pane"><h3>🎫 Промокоды</h3><div class="flex-form"><div class="field-group"><label>Код</label><input id="promoCode"></div><div class="field-group"><label>Тип</label><select id="promoType"><option value="percent">%</option><option value="fixed">Фикс</option></select></div><div class="field-group"><label>Значение</label><input id="promoValue" type="number"></div><div class="field-group"><label>Мин. сумма</label><input id="promoMinSum" type="number"></div><div class="field-group"><label>Лимит</label><input id="promoMaxUses" type="number"></div><button id="addPromoBtn">+</button></div><div class="table-wrapper"><table><thead><tr><th>Код</th><th>Скидка</th><th>Мин. сумма</th><th>Осталось</th><th></th></tr></thead><tbody id="promoCodesList"></tbody></table></div></div>
 
     <!-- Вкладка 9: Бронирования -->
-    <div id="tab9" class="tab-pane active-pane">
-        <h3>📝 Создание бронирования (цена за человека + групповые скидки)</h3>
+    <div id="tab9" class="tab-pane">
+        <h3>📝 Создание бронирования</h3>
         <div class="two-columns">
             <div class="card">
-                <h4>📋 Выбор услуг</h4>
-                <div class="field-group"><label>🏢 Помещение</label><select id="bookingRoom"><option value="">Выберите помещение</option></select></div>
-                <div class="field-group"><label>🎮 Сценарий</label><select id="bookingScenario" disabled><option value="">Сначала выберите помещение</option></select></div>
+                <div class="field-group"><label>🏢 Помещение</label><select id="bookingRoom"></select></div>
+                <div class="field-group"><label>🎮 Сценарий</label><select id="bookingScenario" disabled></select></div>
                 <div class="field-group"><label>📅 Дата</label><input type="date" id="bookingDate" value="2026-03-30"></div>
-                <div class="field-group"><label>⏰ Время</label><select id="bookingTime"><option>10:00</option><option>11:00</option><option>12:00</option><option>13:00</option><option>14:00</option><option>15:00</option><option>16:00</option><option>17:00</option></select></div>
-                <div class="field-group"><label>👥 Количество гостей</label><input type="number" id="bookingGuests" value="2" min="1" max="20"></div>
-                <div class="field-group"><label>🎫 Промокод</label><div style="display: flex; gap: 8px;"><input type="text" id="bookingPromo" placeholder="Введите промокод"><button id="applyPromoBtn" class="small">Применить</button></div></div>
-                <div id="promoMessage" style="margin-top: 12px; display: none;"></div>
+                <div class="field-group"><label>⏰ Слоты</label><div id="availableSlots" class="time-slots-grid"></div></div>
+                <div id="selectedSlotInfo" style="display:none" class="info-note"></div>
+                <div class="field-group"><label>👥 Гостей (мин 2)</label><input type="number" id="bookingGuests" value="2" min="2"></div>
+                <div class="field-group"><label>📞 Контакты</label><input id="customerName" placeholder="Имя"><input id="customerPhone" placeholder="Телефон" style="margin-top:8px"></div>
+                <div class="field-group"><label>🎫 Промокод</label><div style="display:flex;gap:8px"><input id="bookingPromo"><button id="applyPromoBtn" class="small">Применить</button></div></div>
+                <div id="promoMessage" style="display:none"></div>
             </div>
             <div class="card">
-                <h4>💰 Расчёт стоимости</h4>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;"><span>Цена за человека:</span><strong><span id="pricePerPerson">0</span> ₽</strong></div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: #4b5563;"><span>Количество гостей:</span><strong><span id="guestsCount">0</span> чел.</strong></div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span>Сумма до скидок:</span><strong><span id="subtotalBeforeDiscount">0</span> ₽</strong></div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: #f97316;"><span>👥 Групповая скидка:</span><strong><span id="groupDiscountPercent">0</span>% <span id="groupDiscountAmount">(0 ₽)</span></strong></div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: #10b981;"><span>🎫 Промокод:</span><strong><span id="promoAppliedDisplay">—</span></strong></div>
-                <div style="border-top: 2px solid #e2e8f0; margin: 12px 0; padding-top: 12px;">
-                    <div style="display: flex; justify-content: space-between; align-items: baseline;"><span style="font-size: 1.1rem; font-weight: 600;">ИТОГО:</span><span id="totalPriceDisplay" class="total-price">0</span></div>
-                    <div id="priceBreakdown" class="price-breakdown"></div>
-                </div>
-                <button id="confirmBookingBtn" class="primary" style="margin-top: 16px; width: 100%;" disabled>✅ Забронировать</button>
+                <h4>💰 Расчёт</h4>
+                <div style="display:flex;justify-content:space-between"><span>Цена за человека:</span><strong><span id="pricePerPerson">0</span> ₽</strong></div>
+                <div style="display:flex;justify-content:space-between"><span>Гостей:</span><strong><span id="guestsCount">0</span> чел.</strong></div>
+                <div style="display:flex;justify-content:space-between"><span>Сумма до скидок:</span><strong><span id="subtotalBeforeDiscount">0</span> ₽</strong></div>
+                <div style="display:flex;justify-content:space-between;color:#f97316"><span>👥 Скидка:</span><strong><span id="groupDiscountPercent">0</span>% <span id="groupDiscountAmount">(0 ₽)</span></strong></div>
+                <div style="display:flex;justify-content:space-between;color:#10b981"><span>🎫 Промокод:</span><strong><span id="promoAppliedDisplay">—</span></strong></div>
+                <div style="border-top:2px solid #e2e8f0;margin:12px 0;padding-top:12px"><div style="display:flex;justify-content:space-between"><span style="font-weight:600">ИТОГО:</span><span id="totalPriceDisplay" class="total-price">0</span></div></div>
+                <button id="confirmBookingBtn" class="primary" style="width:100%" disabled>✅ Забронировать</button>
+                <div id="bookingError" style="display:none" class="error-note"></div>
             </div>
         </div>
-        <div style="margin-top: 24px;">
-            <h4>📜 История бронирований</h4>
-            <div class="table-wrapper"><table><thead><tr><th>Дата/Время</th><th>Помещение</th><th>Сценарий</th><th>Гостей</th><th>Цена/чел</th><th>Сумма</th></tr></thead>
-            <tbody id="bookingsList"><tr><td colspan="6" style="text-align: center;">Нет бронирований</td></tr></tbody></table></div>
+        <div style="margin-top:24px"><h4>📜 История</h4><div class="table-wrapper"><table><thead><tr><th>Дата/Время</th><th>Помещение</th><th>Сценарий</th><th>Тип</th><th>Гостей</th><th>Сумма</th></tr></thead><tbody id="bookingsList"></tbody></table></div></div>
+    </div>
+
+    <!-- Вкладка 10: Управление слотами (ПОЛНЫЙ ФУНКЦИОНАЛ) -->
+    <div id="tab10" class="tab-pane active-pane">
+        <h3>⚙️ Управление временными слотами</h3>
+        <div class="info-note" style="margin-bottom: 20px;">
+            💡 <strong>Массовое создание слотов:</strong><br>
+            • Можно создать один слот, указав точное время (например, "14:00")<br>
+            • Можно создать диапазон: "10:00-18:00" - слоты через каждый час<br>
+            • С шагом: "10:00-18:00 step=2" - слоты через 2 часа (10:00, 12:00, 14:00, 16:00, 18:00)
+        </div>
+        
+        <div class="card">
+            <h4>➕ Массовое создание слотов</h4>
+            <div class="flex-form">
+                <div class="field-group"><label>Помещение</label><select id="massRoomSelect"></select></div>
+                <div class="field-group"><label>Сценарий</label><select id="massScenarioSelect"></select></div>
+                <div class="field-group"><label>Даты</label><input id="massDates" placeholder="30.03 или 30.03-05.04"></div>
+                <div class="field-group"><label>Время / диапазон</label><input id="massTimeRange" placeholder="10:00-18:00 или 10:00-18:00 step=2"></div>
+                <div class="field-group"><label>Тип брони</label><select id="massBookingType"><option value="public">🎫 Билетная</option><option value="private">🔒 Групповая</option></select></div>
+                <div class="field-group"><label>Макс. мест</label><input id="massSeats" type="number" value="6"></div>
+                <button id="massCreateBtn" class="primary">🚀 Создать слоты</button>
+            </div>
+        </div>
+        
+        <div class="flex-form">
+            <div class="field-group"><label>Помещение</label><select id="slotRoomFilter"></select></div>
+            <div class="field-group"><label>Сценарий</label><select id="slotScenarioFilter"></select></div>
+            <div class="field-group"><label>Дата</label><input type="date" id="slotDateFilter" value="2026-03-30"></div>
+            <button id="refreshSlotsBtn" class="primary">Показать</button>
+        </div>
+        
+        <div id="slotsManagement" class="time-slots-grid"></div>
+        
+        <div class="card" style="margin-top: 24px;">
+            <h4>⚙️ Настройки по умолчанию для сценариев</h4>
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>Сценарий</th><th>Тип по умолчанию</th><th>Макс. мест</th><th></th></tr></thead>
+                    <tbody id="scenarioPoliciesList"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    // ========== МОДЕЛЬ ДАННЫХ ==========
+    // ========== ДАННЫЕ ==========
     let priceTemplate = {
         "Понедельник": { morning: 150, day: 200, evening: 250 },
         "Вторник": { morning: 150, day: 200, evening: 250 },
@@ -445,113 +379,427 @@
         "Суббота": { morning: 150, day: 200, evening: 250 },
         "Воскресенье": { morning: 150, day: 200, evening: 250 }
     };
-    let specialPolicies = [{ id: 1, name: "8 марта", dateExpr: "08.03.", percent: 10 }, { id: 2, name: "Акция 30 марта", dateExpr: "30.03.", percent: 20 }];
-    let schedules = [{ id: 1, name: "Март", dateRangeStr: "01.03-31.03", policyIds: [1, 2] }];
-    let scenarios = [{ id: 1, name: "Побег из темницы", duration: 60, difficulty: 4, players: "2-6", description: "", status: "active" }];
-    let rooms = [{ id: 1, name: "Комната 101", scenarioIds: [1] }];
+
+    let specialPolicies = [
+        { id: 1, name: "Акция 30 марта", dateExpr: "30.03.", percent: 10, noCombine: false }
+    ];
+    
+    let schedules = [{ id: 1, name: "Март", dateRangeStr: "01.03-31.03", policyIds: [1] }];
+    
+    let scenarios = [
+        { id: 1, name: "Побег из темницы", duration: 60, difficulty: 4, players: "2-6", status: "active", defaultBookingType: "public", maxSeats: 6 },
+        { id: 2, name: "Тайна особняка", duration: 90, difficulty: 3, players: "2-5", status: "active", defaultBookingType: "public", maxSeats: 5 },
+        { id: 3, name: "Космическая станция", duration: 75, difficulty: 5, players: "3-8", status: "active", defaultBookingType: "private", maxSeats: 8 }
+    ];
+    
+    let rooms = [
+        { id: 1, name: "Комната 101", scenarioIds: [1, 2] },
+        { id: 2, name: "VIP зал", scenarioIds: [3] }
+    ];
+    
+    let timeSlots = [
+        { id: 1, date: "2026-03-30", time: "10:00", roomId: 1, scenarioId: 1, totalSeats: 6, bookedSeats: 0, bookingType: "public", bookings: [] },
+        { id: 2, date: "2026-03-30", time: "12:00", roomId: 1, scenarioId: 1, totalSeats: 6, bookedSeats: 0, bookingType: "public", bookings: [] },
+        { id: 3, date: "2026-03-30", time: "14:00", roomId: 1, scenarioId: 1, totalSeats: 6, bookedSeats: 0, bookingType: "public", bookings: [] },
+        { id: 4, date: "2026-03-30", time: "16:00", roomId: 1, scenarioId: 1, totalSeats: 6, bookedSeats: 0, bookingType: "public", bookings: [] },
+        { id: 5, date: "2026-03-30", time: "18:00", roomId: 2, scenarioId: 3, totalSeats: 8, bookedSeats: 0, bookingType: "private", bookings: [] }
+    ];
+    
     let groupPolicies = [
-        { id: 1, name: "Компания друзей", minGuests: 4, maxGuests: 6, discount: 10 },
-        { id: 2, name: "Большая группа", minGuests: 7, maxGuests: 12, discount: 15 },
-        { id: 3, name: "Супер-группа", minGuests: 13, maxGuests: 20, discount: 20 }
+        { id: 1, name: "Компания друзей", minGuests: 4, maxGuests: 6, discount: 10, noCombine: false },
+        { id: 2, name: "Большая группа", minGuests: 7, maxGuests: 12, discount: 15, noCombine: false }
     ];
+    
     let promoCodes = [
-        { id: 1, code: "WELCOME10", type: "percent", value: 10, minSum: 0, maxUses: 5, usedCount: 0 },
-        { id: 2, code: "FIX200", type: "fixed", value: 200, minSum: 1000, maxUses: 3, usedCount: 0 }
+        { id: 1, code: "WELCOME10", type: "percent", value: 10, minSum: 0, maxUses: 5, usedCount: 0, noCombine: false }
     ];
+    
     let bookings = [];
-    let nextScenarioId = 2, nextRoomId = 2, nextPolicyId = 3, nextScheduleId = 2, nextGroupId = 4, nextPromoId = 3;
-    let currentCalculation = { valid: false, finalPrice: 0 };
-
-    function getWeekdayByDate(day, month, year = 2026) { return ["Воскресенье","Понедельник","Вторник","Среда","Четверг","Пятница","Суббота"][new Date(year, month-1, day).getDay()]; }
-    function getBasePriceForWeekdayAndHour(weekday, hour) { let t = priceTemplate[weekday]; if (!t) return 150; if (hour >= 6 && hour < 12) return t.morning; if (hour >= 12 && hour < 18) return t.day; return t.evening; }
-    function getTotalPercentForDate(day, month) { let total = 0; for (let s of schedules) { let [start, end] = s.dateRangeStr.split('-'); let [sD, sM] = start.split('.').map(Number); let [eD, eM] = end.split('.').map(Number); let target = month*100+day, startNum = sM*100+sD, endNum = eM*100+eD; if (target >= startNum && target <= endNum) { for (let pid of (s.policyIds || [])) { let p = specialPolicies.find(pol => pol.id === pid); if (p) total += p.percent; } } } return total; }
-    function getPricePerPerson(day, month, hour) { let weekday = getWeekdayByDate(day, month); let base = getBasePriceForWeekdayAndHour(weekday, hour); let percent = getTotalPercentForDate(day, month); return Math.round(base * (1 + percent / 100) * 10) / 10; }
-    function getGroupDiscountPercent(guests) { for (let p of groupPolicies) if (guests >= p.minGuests && guests <= p.maxGuests) return p.discount; return 0; }
-    function getPromoByCode(code) { return promoCodes.find(p => p.code.toUpperCase() === code.toUpperCase()); }
-    function validatePromo(promo, subtotal) { if (!promo) return null; if (promo.maxUses > 0 && promo.usedCount >= promo.maxUses) return { valid: false, msg: "Промокод использован максимальное число раз" }; if (subtotal < promo.minSum) return { valid: false, msg: `Минимальная сумма: ${promo.minSum}₽` }; let discount = promo.type === "percent" ? subtotal * promo.value / 100 : promo.value; return { valid: true, discount: Math.min(discount, subtotal), msg: `Скидка: ${discount}₽` }; }
-
-    function calculateAndUpdate() {
-        const roomId = parseInt(document.getElementById('bookingRoom').value);
-        const scenarioId = parseInt(document.getElementById('bookingScenario').value);
-        const dateStr = document.getElementById('bookingDate').value;
-        const time = document.getElementById('bookingTime').value;
-        const guests = parseInt(document.getElementById('bookingGuests').value) || 1;
-        const promoCode = document.getElementById('bookingPromo').value.trim();
-        if (!roomId || isNaN(scenarioId) || !dateStr || !time) { document.getElementById('totalPriceDisplay').innerText = '0'; document.getElementById('confirmBookingBtn').disabled = true; return; }
-        const room = rooms.find(r => r.id === roomId);
-        const scenario = scenarios.find(s => s.id === scenarioId);
-        if (!room || !scenario) { document.getElementById('confirmBookingBtn').disabled = true; return; }
-        const [year, month, day] = dateStr.split('-').map(Number);
-        const hour = parseInt(time.split(':')[0]);
-        const pricePerPerson = getPricePerPerson(day, month, hour);
-        const subtotalBeforeDiscount = pricePerPerson * guests;
-        const groupDiscountPercent = getGroupDiscountPercent(guests);
-        const groupDiscountAmount = subtotalBeforeDiscount * groupDiscountPercent / 100;
-        const afterGroup = subtotalBeforeDiscount - groupDiscountAmount;
-        let promoResult = null, promoDiscount = 0, promoValid = false;
-        if (promoCode) { const promo = getPromoByCode(promoCode); if (promo) { promoResult = validatePromo(promo, afterGroup); if (promoResult?.valid) { promoDiscount = promoResult.discount; promoValid = true; } } }
-        const finalPrice = Math.max(0, Math.round(afterGroup - promoDiscount));
-        document.getElementById('pricePerPerson').innerText = pricePerPerson;
-        document.getElementById('guestsCount').innerText = guests;
-        document.getElementById('subtotalBeforeDiscount').innerHTML = `<strong>${subtotalBeforeDiscount}</strong> ₽ (${pricePerPerson}₽ × ${guests})`;
-        document.getElementById('groupDiscountPercent').innerText = groupDiscountPercent;
-        document.getElementById('groupDiscountAmount').innerHTML = groupDiscountPercent > 0 ? `(-${Math.round(groupDiscountAmount)} ₽)` : '(0 ₽)';
-        document.getElementById('totalPriceDisplay').innerText = finalPrice;
-        let breakdown = `${pricePerPerson}₽ × ${guests} = ${subtotalBeforeDiscount}₽`;
-        if (groupDiscountPercent > 0) breakdown += `\nГрупповая скидка ${groupDiscountPercent}%: -${Math.round(groupDiscountAmount)}₽`;
-        if (promoDiscount > 0) breakdown += `\nПромокод: -${promoDiscount}₽`;
-        document.getElementById('priceBreakdown').innerHTML = breakdown.replace(/\n/g, '<br>');
-        if (promoValid && promoResult) { document.getElementById('promoAppliedDisplay').innerHTML = `<span style="color:#10b981;">${promoCode} (-${promoDiscount}₽)</span>`; document.getElementById('promoMessage').style.display = 'block'; document.getElementById('promoMessage').className = 'info-note success-note'; document.getElementById('promoMessage').innerHTML = `✅ ${promoResult.msg}`; }
-        else if (promoCode && promoResult && !promoResult.valid) { document.getElementById('promoAppliedDisplay').innerHTML = `<span style="color:#dc2626;">Недействителен</span>`; document.getElementById('promoMessage').style.display = 'block'; document.getElementById('promoMessage').className = 'info-note error-note'; document.getElementById('promoMessage').innerHTML = `❌ ${promoResult.msg}`; }
-        else if (promoCode && !promoResult) { document.getElementById('promoAppliedDisplay').innerHTML = `<span style="color:#dc2626;">Не найден</span>`; document.getElementById('promoMessage').style.display = 'block'; document.getElementById('promoMessage').className = 'info-note error-note'; document.getElementById('promoMessage').innerHTML = `❌ Промокод не существует`; }
-        else { document.getElementById('promoAppliedDisplay').innerHTML = '—'; document.getElementById('promoMessage').style.display = 'none'; }
-        currentCalculation = { valid: true, finalPrice, pricePerPerson, guests, subtotalBeforeDiscount, groupDiscountPercent, groupDiscountAmount, promoDiscount, promoCode: promoValid ? promoCode : null, room, scenario, dateStr, time };
-        document.getElementById('confirmBookingBtn').disabled = false;
+    let selectedSlot = null;
+    let nextSlotId = 6, nextBookingId = 2, nextPolicyId = 2, nextScheduleId = 2, nextGroupId = 3, nextPromoId = 2, nextScenarioId = 4, nextRoomId = 3;
+    
+    // ========== ФУНКЦИИ ==========
+    function getWeekdayByDate(day, month, year = 2026) {
+        return ["Воскресенье","Понедельник","Вторник","Среда","Четверг","Пятница","Суббота"][new Date(year, month-1, day).getDay()];
     }
-
-    function updateScenariosByRoom() {
-        const roomId = parseInt(document.getElementById('bookingRoom').value);
-        const scenarioSelect = document.getElementById('bookingScenario');
-        if (!roomId) { scenarioSelect.innerHTML = '<option value="">Сначала выберите помещение</option>'; scenarioSelect.disabled = true; return; }
-        const room = rooms.find(r => r.id === roomId);
-        if (room?.scenarioIds?.length) { const available = scenarios.filter(s => room.scenarioIds.includes(s.id) && s.status === 'active'); scenarioSelect.innerHTML = available.map(s => `<option value="${s.id}">${s.name} (${s.duration} мин)</option>`).join(''); scenarioSelect.disabled = available.length === 0; } 
-        else { scenarioSelect.innerHTML = '<option value="">Нет сценариев</option>'; scenarioSelect.disabled = true; }
-        calculateAndUpdate();
+    
+    function getBasePriceForWeekdayAndHour(weekday, hour) {
+        let t = priceTemplate[weekday];
+        if (!t) return 150;
+        if (hour >= 6 && hour < 12) return t.morning;
+        if (hour >= 12 && hour < 18) return t.day;
+        return t.evening;
     }
-
-    // Отрисовка всех разделов
-    function renderPriceGrid() { let tbody = document.getElementById('priceGridBody'); if(!tbody) return; let html = ''; for(let i=0;i<7;i++){ let d=new Date(2026,2,30+i); let day=d.getDate(), month=d.getMonth()+1; let cells=''; for(let h of [10,11,12,13,14,15,16,17]) cells+=`<td>${getPricePerPerson(day,month,h)} ₽</td>`; html+=`<tr><td style="font-weight:500;">${getWeekdayByDate(day,month).substring(0,2)} ${day}.${month}</td>${cells}</tr>`; } tbody.innerHTML=html; }
-    function renderTemplateEditor() { let days=["Понедельник","Вторник","Среда","Четверг","Пятница","Суббота","Воскресенье"]; let tbody=document.getElementById('priceTemplateBody'); tbody.innerHTML=days.map(d=>`<tr><td>${d}</td><td><input class="morning" data-day="${d}" value="${priceTemplate[d].morning}">  \\s*<input class="day" data-day="${d}" value="${priceTemplate[d].day}">  \\s*<input class="evening" data-day="${d}" value="${priceTemplate[d].evening}">  \\s*`).join('').replace(/\\s+/g,' '); document.querySelectorAll('.morning').forEach(i=>i.onchange=()=>{priceTemplate[i.dataset.day].morning=+i.value;renderPriceGrid();calculateAndUpdate();}); document.querySelectorAll('.day').forEach(i=>i.onchange=()=>{priceTemplate[i.dataset.day].day=+i.value;renderPriceGrid();calculateAndUpdate();}); document.querySelectorAll('.evening').forEach(i=>i.onchange=()=>{priceTemplate[i.dataset.day].evening=+i.value;renderPriceGrid();calculateAndUpdate();}); }
-    function renderSpecialPolicies() { let tbody=document.getElementById('specialPoliciesList'); tbody.innerHTML=specialPolicies.map(p=>`<tr><td>${p.name}</td><td>${p.dateExpr}</td><td>${p.percent}%</td><td><button class="small del-policy" data-id="${p.id}">❌</button></td></tr>`).join(''); document.querySelectorAll('.del-policy').forEach(btn=>btn.onclick=()=>{specialPolicies=specialPolicies.filter(p=>p.id!=btn.dataset.id);renderSpecialPolicies();renderPriceGrid();calculateAndUpdate();}); }
-    function renderScheduleList() { let tbody=document.getElementById('scheduleList'); tbody.innerHTML=schedules.map(s=>`<tr><td>${s.name}</td><td>${s.dateRangeStr}</td><td>${(s.policyIds||[]).map(id=>specialPolicies.find(p=>p.id===id)?.name).join(', ')||'—'}</td><td><button class="small del-sched" data-id="${s.id}">❌</button></td></tr>`).join(''); document.querySelectorAll('.del-sched').forEach(btn=>btn.onclick=()=>{schedules=schedules.filter(s=>s.id!=btn.dataset.id);renderScheduleList();renderPriceGrid();calculateAndUpdate();}); }
-    function renderScenarios() { let tbody=document.getElementById('scenariosList'); tbody.innerHTML=scenarios.map(s=>`<tr><td>${s.name}</td><td>${s.duration}</td><td>${s.difficulty}</td><td>${s.players}</td><td><span class="status-badge ${s.status==='active'?'status-active':'status-inactive'}">${s.status==='active'?'Активен':'Неактивен'}</span></td><td><button class="small del-scen" data-id="${s.id}">❌</button></td></tr>`).join(''); document.querySelectorAll('.del-scen').forEach(btn=>btn.onclick=()=>{scenarios=scenarios.filter(s=>s.id!=btn.dataset.id);renderScenarios();renderRoomCheckboxes();updateRoomsList();calculateAndUpdate();}); }
-    function renderRoomCheckboxes() { let container=document.getElementById('roomScenariosCheckboxContainer'); if(container) container.innerHTML=scenarios.map(s=>`<div class="checkbox-item"><input type="checkbox" id="roomScen_${s.id}" value="${s.id}"><label>${s.name}</label></div>`).join('')||'<div>Нет сценариев</div>'; }
-    function updateRoomsList() { let tbody=document.getElementById('roomsList'); tbody.innerHTML=rooms.map(r=>`<tr><td>${r.name}</td><td>${(r.scenarioIds||[]).map(id=>scenarios.find(s=>s.id===id)?.name).join(', ')}</td><td><button class="small del-room" data-id="${r.id}">❌</button></td></tr>`).join(''); document.querySelectorAll('.del-room').forEach(btn=>btn.onclick=()=>{rooms=rooms.filter(r=>r.id!=btn.dataset.id);updateRoomsList();updateBookingRoomSelect();calculateAndUpdate();}); }
-    function updateBookingRoomSelect() { let select=document.getElementById('bookingRoom'); select.innerHTML='<option value="">Выберите помещение</option>'+rooms.map(r=>`<option value="${r.id}">${r.name}</option>`).join(''); if(rooms.length>0) select.value=rooms[0].id; updateScenariosByRoom(); }
-    function renderGroupPolicies() { let tbody=document.getElementById('groupPoliciesList'); tbody.innerHTML=groupPolicies.map(p=>`<tr><td>${p.name}</td><td>${p.minGuests}-${p.maxGuests}</td><td>${p.discount}%</td><td><button class="small del-group" data-id="${p.id}">❌</button></td></tr>`).join(''); document.querySelectorAll('.del-group').forEach(btn=>btn.onclick=()=>{groupPolicies=groupPolicies.filter(g=>g.id!=btn.dataset.id);renderGroupPolicies();calculateAndUpdate();}); }
-    function renderPromoCodes() { let tbody=document.getElementById('promoCodesList'); tbody.innerHTML=promoCodes.map(p=>`<tr><td><strong>${p.code}</strong></td><td>${p.type==='percent'?p.value+'%':p.value+'₽'}</td><td>${p.minSum}₽</td><td>${p.maxUses>0?p.maxUses-p.usedCount:'∞'}</td><td><button class="small del-promo" data-id="${p.id}">❌</button></td></tr>`).join(''); document.querySelectorAll('.del-promo').forEach(btn=>btn.onclick=()=>{promoCodes=promoCodes.filter(c=>c.id!=btn.dataset.id);renderPromoCodes();calculateAndUpdate();}); }
-    function renderBookings() { let tbody=document.getElementById('bookingsList'); tbody.innerHTML=bookings.length?bookings.map(b=>`<tr><td>${b.dateStr} ${b.time}</td><td>${b.room.name}</td><td>${b.scenario.name}</td><td>${b.guests}</td><td>${b.pricePerPerson}₽</td><td>${b.finalPrice}₽</td></tr>`).join(''):'<tr><td colspan="6" style="text-align: center;">Нет бронирований</td></tr>'; }
-
-    // Event Listeners
-    document.getElementById('bookingRoom')?.addEventListener('change', updateScenariosByRoom);
-    document.getElementById('bookingScenario')?.addEventListener('change', calculateAndUpdate);
-    document.getElementById('bookingDate')?.addEventListener('change', calculateAndUpdate);
-    document.getElementById('bookingTime')?.addEventListener('change', calculateAndUpdate);
-    document.getElementById('bookingGuests')?.addEventListener('input', calculateAndUpdate);
-    document.getElementById('applyPromoBtn')?.addEventListener('click', calculateAndUpdate);
-    document.getElementById('bookingPromo')?.addEventListener('input', calculateAndUpdate);
-    document.getElementById('confirmBookingBtn')?.addEventListener('click', () => { if(currentCalculation.valid){ if(currentCalculation.promoCode){ let promo=getPromoByCode(currentCalculation.promoCode); if(promo&&promo.maxUses>0) promo.usedCount++; renderPromoCodes(); } bookings.push(currentCalculation); renderBookings(); alert(`✅ Бронирование создано! Сумма: ${currentCalculation.finalPrice}₽`); calculateAndUpdate(); } });
-    document.getElementById('addPolicyBtn')?.addEventListener('click',()=>{let n=document.getElementById('policyName').value,d=document.getElementById('policyDate').value,p=+document.getElementById('policyPercent').value; if(n&&d&&p) specialPolicies.push({id:nextPolicyId++,name:n,dateExpr:d,percent:p}); renderSpecialPolicies(); renderPriceGrid(); calculateAndUpdate(); });
-    document.getElementById('addSegmentBtn')?.addEventListener('click',()=>{let n=document.getElementById('segmentName').value,r=document.getElementById('segmentRange').value; if(n&&r) schedules.push({id:nextScheduleId++,name:n,dateRangeStr:r,policyIds:[]}); renderScheduleList(); renderPriceGrid(); calculateAndUpdate(); });
-    document.getElementById('addScenarioBtn')?.addEventListener('click',()=>{let n=document.getElementById('scenarioName').value,dur=+document.getElementById('scenarioDuration').value,diff=+document.getElementById('scenarioDifficulty').value,pl=document.getElementById('scenarioPlayers').value,desc=document.getElementById('scenarioDescription').value,stat=document.getElementById('scenarioStatus').value; if(n&&dur&&diff) scenarios.push({id:nextScenarioId++,name:n,duration:dur,difficulty:diff,players:pl,description:desc,status:stat}); renderScenarios(); renderRoomCheckboxes(); updateRoomsList(); calculateAndUpdate(); });
-    document.getElementById('addRoomBtn')?.addEventListener('click',()=>{let n=document.getElementById('roomName').value; let ch=Array.from(document.querySelectorAll('#roomScenariosCheckboxContainer input:checked')).map(cb=>+cb.value); if(n) rooms.push({id:nextRoomId++,name:n,scenarioIds:ch}); updateRoomsList(); updateBookingRoomSelect(); calculateAndUpdate(); });
-    document.getElementById('addGroupPolicyBtn')?.addEventListener('click',()=>{let n=document.getElementById('groupPolicyName').value,min=+document.getElementById('groupMinGuests').value,max=+document.getElementById('groupMaxGuests').value,disc=+document.getElementById('groupDiscount').value; if(n&&min&&max&&disc) groupPolicies.push({id:nextGroupId++,name:n,minGuests:min,maxGuests:max,discount:disc}); renderGroupPolicies(); calculateAndUpdate(); });
-    document.getElementById('addPromoBtn')?.addEventListener('click',()=>{let c=document.getElementById('promoCode').value.toUpperCase(),t=document.getElementById('promoType').value,v=+document.getElementById('promoValue').value,ms=+document.getElementById('promoMinSum').value,mu=+document.getElementById('promoMaxUses').value; if(c&&v) promoCodes.push({id:nextPromoId++,code:c,type:t,value:v,minSum:ms,maxUses:mu,usedCount:0}); renderPromoCodes(); calculateAndUpdate(); });
-    document.getElementById('saveTemplateBtn')?.addEventListener('click',()=>{renderPriceGrid();alert('Шаблон сохранён');calculateAndUpdate();});
-
-    function init() { renderPriceGrid(); renderTemplateEditor(); renderSpecialPolicies(); renderScheduleList(); renderScenarios(); renderRoomCheckboxes(); updateRoomsList(); renderGroupPolicies(); renderPromoCodes(); updateBookingRoomSelect(); renderBookings(); calculateAndUpdate(); }
+    
+    function getTotalPercentForDate(day, month) {
+        let total = 0;
+        for (let s of schedules) {
+            if (!s.dateRangeStr) continue;
+            let [start, end] = s.dateRangeStr.split('-');
+            let [sD, sM] = start.split('.').map(Number);
+            let [eD, eM] = end.split('.').map(Number);
+            let target = month * 100 + day;
+            let startNum = sM * 100 + sD;
+            let endNum = eM * 100 + eD;
+            if (target >= startNum && target <= endNum) {
+                for (let pid of (s.policyIds || [])) {
+                    let p = specialPolicies.find(pol => pol.id === pid);
+                    if (p) total += p.percent;
+                }
+            }
+        }
+        return total;
+    }
+    
+    function getPricePerPerson(day, month, hour) {
+        let weekday = getWeekdayByDate(day, month);
+        let base = getBasePriceForWeekdayAndHour(weekday, hour);
+        let percent = getTotalPercentForDate(day, month);
+        return Math.round(base * (1 + percent / 100) * 10) / 10;
+    }
+    
+    function getGroupDiscount(guests) {
+        for (let p of groupPolicies) {
+            if (guests >= p.minGuests && guests <= p.maxGuests) return p;
+        }
+        return null;
+    }
+    
+    function getAvailableSeats(slot) { return slot.totalSeats - slot.bookedSeats; }
+    
+    // ========== МАССОВОЕ СОЗДАНИЕ СЛОТОВ ==========
+    function parseDateRange(dateStr) {
+        if (dateStr.includes('-')) {
+            let [start, end] = dateStr.split('-');
+            let [sDay, sMonth] = start.split('.').map(Number);
+            let [eDay, eMonth] = end.split('.').map(Number);
+            let dates = [];
+            let current = new Date(2026, sMonth-1, sDay);
+            let endDate = new Date(2026, eMonth-1, eDay);
+            while (current <= endDate) {
+                let day = current.getDate();
+                let month = current.getMonth() + 1;
+                dates.push(`${day.toString().padStart(2,'0')}.${month.toString().padStart(2,'0')}`);
+                current.setDate(current.getDate() + 1);
+            }
+            return dates;
+        } else {
+            return [dateStr];
+        }
+    }
+    
+    function parseTimeRange(timeStr) {
+        let step = 1;
+        let rangePart = timeStr;
+        if (timeStr.includes('step=')) {
+            let parts = timeStr.split('step=');
+            rangePart = parts[0].trim();
+            step = parseInt(parts[1]) || 1;
+        }
+        
+        if (rangePart.includes('-')) {
+            let [start, end] = rangePart.split('-');
+            let startHour = parseInt(start.split(':')[0]);
+            let endHour = parseInt(end.split(':')[0]);
+            let times = [];
+            for (let h = startHour; h <= endHour; h += step) {
+                times.push(`${h.toString().padStart(2,'0')}:00`);
+            }
+            return times;
+        } else {
+            return [rangePart];
+        }
+    }
+    
+    function massCreateSlots() {
+        const roomId = parseInt(document.getElementById('massRoomSelect').value);
+        const scenarioId = parseInt(document.getElementById('massScenarioSelect').value);
+        const datesStr = document.getElementById('massDates').value.trim();
+        const timeRangeStr = document.getElementById('massTimeRange').value.trim();
+        const bookingType = document.getElementById('massBookingType').value;
+        const totalSeats = parseInt(document.getElementById('massSeats').value);
+        
+        if (!roomId || !scenarioId || !datesStr || !timeRangeStr) {
+            alert('Заполните все поля');
+            return;
+        }
+        
+        const dates = parseDateRange(datesStr);
+        const times = parseTimeRange(timeRangeStr);
+        
+        let created = 0;
+        let skipped = 0;
+        
+        for (let date of dates) {
+            let [day, month] = date.split('.').map(Number);
+            let formattedDate = `2026-${month.toString().padStart(2,'0')}-${day.toString().padStart(2,'0')}`;
+            
+            for (let time of times) {
+                const exists = timeSlots.some(slot => slot.date === formattedDate && slot.time === time && slot.roomId === roomId && slot.scenarioId === scenarioId);
+                if (!exists) {
+                    timeSlots.push({
+                        id: nextSlotId++,
+                        date: formattedDate,
+                        time: time,
+                        roomId: roomId,
+                        scenarioId: scenarioId,
+                        totalSeats: totalSeats,
+                        bookedSeats: 0,
+                        bookingType: bookingType,
+                        bookings: []
+                    });
+                    created++;
+                } else {
+                    skipped++;
+                }
+            }
+        }
+        
+        alert(`✅ Создано слотов: ${created}\n⏭️ Пропущено (уже существовали): ${skipped}`);
+        renderSlotsManagement();
+        renderAvailableSlots();
+    }
+    
+    // ========== УПРАВЛЕНИЕ СЛОТАМИ ==========
+    function renderSlotsManagement() {
+        const roomId = parseInt(document.getElementById('slotRoomFilter')?.value);
+        const scenarioId = parseInt(document.getElementById('slotScenarioFilter')?.value);
+        const date = document.getElementById('slotDateFilter')?.value;
+        const container = document.getElementById('slotsManagement');
+        if (!container) return;
+        
+        let filtered = timeSlots;
+        if (roomId) filtered = filtered.filter(s => s.roomId === roomId);
+        if (scenarioId) filtered = filtered.filter(s => s.scenarioId === scenarioId);
+        if (date) filtered = filtered.filter(s => s.date === date);
+        
+        if (filtered.length === 0) {
+            container.innerHTML = '<div class="info-note">Нет слотов. Создайте их с помощью формы выше.</div>';
+            return;
+        }
+        
+        container.innerHTML = filtered.map(slot => {
+            const scenario = scenarios.find(sc => sc.id === slot.scenarioId);
+            const room = rooms.find(r => r.id === slot.roomId);
+            const available = getAvailableSeats(slot);
+            const isFull = slot.bookedSeats >= slot.totalSeats;
+            return `
+                <div class="slot-card ${isFull ? 'fully-booked' : ''}">
+                    <div style="display:flex;justify-content:space-between;align-items:center">
+                        <div class="slot-time">⏰ ${slot.time}</div>
+                        <span class="booking-badge ${slot.bookingType === 'private' ? 'badge-private' : 'badge-public'}">
+                            ${slot.bookingType === 'private' ? 'Групповая' : 'Билетная'}
+                        </span>
+                    </div>
+                    <div style="font-size:0.85rem; color:#4b5563; margin-top:4px">${room?.name} / ${scenario?.name}</div>
+                    <div style="margin-top:8px">📊 ${slot.bookedSeats}/${slot.totalSeats} мест занято</div>
+                    <div style="margin-top:4px">🎫 Свободно: ${available} мест</div>
+                    <div style="margin-top:12px; display:flex; gap:8px">
+                        <button class="small edit-slot" data-id="${slot.id}">✏️ Редактировать</button>
+                        <button class="small delete-slot" data-id="${slot.id}">🗑️ Удалить</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        document.querySelectorAll('.edit-slot').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                editSlot(parseInt(btn.dataset.id));
+            });
+        });
+        document.querySelectorAll('.delete-slot').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                deleteSlot(parseInt(btn.dataset.id));
+            });
+        });
+    }
+    
+    function editSlot(slotId) {
+        const slot = timeSlots.find(s => s.id === slotId);
+        if (!slot) return;
+        const newSeats = prompt(`Введите макс. мест (сейчас ${slot.totalSeats}, занято ${slot.bookedSeats}):`, slot.totalSeats);
+        if (newSeats && !isNaN(newSeats) && parseInt(newSeats) >= slot.bookedSeats) {
+            slot.totalSeats = parseInt(newSeats);
+            renderSlotsManagement();
+            renderAvailableSlots();
+        } else if (newSeats && parseInt(newSeats) < slot.bookedSeats) {
+            alert('Нельзя уменьшить количество мест ниже уже забронированных');
+        }
+    }
+    
+    function deleteSlot(slotId) {
+        if (confirm('Удалить слот? Все бронирования на этот слот будут удалены.')) {
+            timeSlots = timeSlots.filter(s => s.id !== slotId);
+            renderSlotsManagement();
+            renderAvailableSlots();
+        }
+    }
+    
+    function renderScenarioPolicies() {
+        const tbody = document.getElementById('scenarioPoliciesList');
+        if (!tbody) return;
+        tbody.innerHTML = scenarios.map(s => `
+            <tr>
+                <td>${s.name}</td>
+                <td>
+                    <select data-id="${s.id}" class="scenario-type-select">
+                        <option value="public" ${s.defaultBookingType === 'public' ? 'selected' : ''}>🎫 Билетная</option>
+                        <option value="private" ${s.defaultBookingType === 'private' ? 'selected' : ''}>🔒 Групповая</option>
+                    </select>
+                </td>
+                <td><input type="number" data-id="${s.id}" class="scenario-seats" value="${s.maxSeats}" min="1" max="20" style="width:80px"></td>
+                <td><button class="small apply-to-slots" data-id="${s.id}">📌 Применить к слотам</button></td>
+            </tr>
+        `).join('');
+        
+        document.querySelectorAll('.scenario-type-select').forEach(sel => {
+            sel.addEventListener('change', (e) => {
+                const s = scenarios.find(sc => sc.id === parseInt(sel.dataset.id));
+                if (s) s.defaultBookingType = sel.value;
+            });
+        });
+        document.querySelectorAll('.scenario-seats').forEach(inp => {
+            inp.addEventListener('change', (e) => {
+                const s = scenarios.find(sc => sc.id === parseInt(inp.dataset.id));
+                if (s) s.maxSeats = parseInt(inp.value);
+            });
+        });
+        document.querySelectorAll('.apply-to-slots').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = parseInt(btn.dataset.id);
+                const s = scenarios.find(sc => sc.id === id);
+                if (s) {
+                    timeSlots.forEach(slot => {
+                        if (slot.scenarioId === id && slot.bookedSeats === 0) {
+                            slot.bookingType = s.defaultBookingType;
+                            slot.totalSeats = s.maxSeats;
+                        }
+                    });
+                    renderSlotsManagement();
+                    renderAvailableSlots();
+                    alert(`Настройки применены ко всем свободным слотам сценария "${s.name}"`);
+                }
+            });
+        });
+    }
+    
+    // ========== ОСТАЛЬНЫЕ ФУНКЦИИ ==========
+    function renderPriceGrid() {
+        let tbody = document.getElementById('priceGridBody');
+        if (!tbody) return;
+        let html = '';
+        for (let i = 0; i < 7; i++) {
+            let d = new Date(2026, 2, 30 + i);
+            let day = d.getDate(), month = d.getMonth() + 1;
+            let weekday = getWeekdayByDate(day, month);
+            let cells = '';
+            for (let h of [10,11,12,13,14,15,16,17]) {
+                let price = getPricePerPerson(day, month, h);
+                cells += `<td>${price} ₽</td>`;
+            }
+            html += `<tr><td style="font-weight:500;">${weekday.substring(0,2)} ${day}.${month}</td>${cells}</tr>`;
+        }
+        tbody.innerHTML = html;
+    }
+    
+    function renderTemplateEditor() {
+        let days = ["Понедельник","Вторник","Среда","Четверг","Пятница","Суббота","Воскресенье"];
+        let tbody = document.getElementById('priceTemplateBody');
+        if (!tbody) return;
+        tbody.innerHTML = days.map(d => `
+            <tr>
+                <td>${d}</td>
+                <td><input class="morning" data-day="${d}" value="${priceTemplate[d].morning}" style="width:90px"></td>
+                <td><input class="day" data-day="${d}" value="${priceTemplate[d].day}" style="width:90px"></td>
+                <td><input class="evening" data-day="${d}" value="${priceTemplate[d].evening}" style="width:90px"></td>
+            </tr>
+        `).join('');
+        document.querySelectorAll('.morning').forEach(i => i.onchange = () => { priceTemplate[i.dataset.day].morning = +i.value; renderPriceGrid(); });
+        document.querySelectorAll('.day').forEach(i => i.onchange = () => { priceTemplate[i.dataset.day].day = +i.value; renderPriceGrid(); });
+        document.querySelectorAll('.evening').forEach(i => i.onchange = () => { priceTemplate[i.dataset.day].evening = +i.value; renderPriceGrid(); });
+    }
+    
+    function renderSpecialPolicies() { let tbody = document.getElementById('specialPoliciesList'); if(tbody) tbody.innerHTML = specialPolicies.map(p => `<tr><td>${p.name}</td><td>${p.dateExpr}</td><td>${p.percent}%</td><td><button class="small del-policy" data-id="${p.id}">❌</button></td></tr>`).join(''); document.querySelectorAll('.del-policy').forEach(btn => btn.onclick = () => { specialPolicies = specialPolicies.filter(p => p.id != btn.dataset.id); renderSpecialPolicies(); renderPriceGrid(); }); }
+    function renderScheduleList() { let tbody = document.getElementById('scheduleList'); if(tbody) tbody.innerHTML = schedules.map(s => `<tr><td>${s.name}</td><td>${s.dateRangeStr}</td><td>${(s.policyIds || []).map(id => specialPolicies.find(p => p.id === id)?.name).join(', ')}</td><td><button class="small del-sched" data-id="${s.id}">❌</button></td></tr>`).join(''); document.querySelectorAll('.del-sched').forEach(btn => btn.onclick = () => { schedules = schedules.filter(s => s.id != btn.dataset.id); renderScheduleList(); renderPriceGrid(); }); }
+    function renderScenarios() { let tbody = document.getElementById('scenariosList'); if(tbody) tbody.innerHTML = scenarios.map(s => `<tr><td>${s.name}</td><td>${s.duration}</td><td>${s.difficulty}</td><td>${s.players}</td><td>${s.status === 'active' ? 'Активен' : 'Неактивен'}</td><td><button class="small del-scen" data-id="${s.id}">❌</button></td></tr>`).join(''); document.querySelectorAll('.del-scen').forEach(btn => btn.onclick = () => { scenarios = scenarios.filter(s => s.id != btn.dataset.id); renderScenarios(); renderRoomCheckboxes(); updateRoomsList(); renderScenarioPolicies(); }); }
+    function renderRoomCheckboxes() { let container = document.getElementById('roomScenariosCheckboxContainer'); if(container) container.innerHTML = scenarios.map(s => `<div><input type="checkbox" id="roomScen_${s.id}" value="${s.id}"><label>${s.name}</label></div>`).join(''); }
+    function updateRoomsList() { let tbody = document.getElementById('roomsList'); if(tbody) tbody.innerHTML = rooms.map(r => `<tr><td>${r.name}</td><td>${(r.scenarioIds || []).map(id => scenarios.find(s => s.id === id)?.name).join(', ')}</td><td><button class="small del-room" data-id="${r.id}">❌</button></td></tr>`).join(''); document.querySelectorAll('.del-room').forEach(btn => btn.onclick = () => { rooms = rooms.filter(r => r.id != btn.dataset.id); updateRoomsList(); updateSelects(); }); }
+    function renderGroupPolicies() { let tbody = document.getElementById('groupPoliciesList'); if(tbody) tbody.innerHTML = groupPolicies.map(p => `<tr><td>${p.name}</td><td>${p.minGuests}-${p.maxGuests}</td><td>${p.discount}%</td><td><button class="small del-group" data-id="${p.id}">❌</button></td></tr>`).join(''); document.querySelectorAll('.del-group').forEach(btn => btn.onclick = () => { groupPolicies = groupPolicies.filter(g => g.id != btn.dataset.id); renderGroupPolicies(); }); }
+    function renderPromoCodes() { let tbody = document.getElementById('promoCodesList'); if(tbody) tbody.innerHTML = promoCodes.map(p => `<tr><td><strong>${p.code}</strong></td><td>${p.type === 'percent' ? p.value + '%' : p.value + '₽'}</td><td>${p.minSum}₽</td><td>${p.maxUses > 0 ? p.maxUses - p.usedCount : '∞'}</td><td><button class="small del-promo" data-id="${p.id}">❌</button></td></tr>`).join(''); document.querySelectorAll('.del-promo').forEach(btn => btn.onclick = () => { promoCodes = promoCodes.filter(c => c.id != btn.dataset.id); renderPromoCodes(); }); }
+    
+    function renderAvailableSlots() { let container = document.getElementById('availableSlots'); if(container) container.innerHTML = '<div class="info-note">Выберите помещение и сценарий</div>'; }
+    function renderBookingsList() { let tbody = document.getElementById('bookingsList'); if(tbody) tbody.innerHTML = '<tr><td colspan="6">Нет бронирований</td></tr>'; }
+    function calculateBooking() {}
+    
+    function updateSelects() {
+        let roomSelect = document.getElementById('bookingRoom');
+        if (roomSelect) {
+            roomSelect.innerHTML = '<option value="">Выберите помещение</option>' + rooms.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+            roomSelect.onchange = () => { updateScenarioSelect(); };
+        }
+        ['slotRoomFilter', 'massRoomSelect'].forEach(id => {
+            let sel = document.getElementById(id);
+            if (sel) sel.innerHTML = rooms.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+        });
+        ['slotScenarioFilter', 'massScenarioSelect'].forEach(id => {
+            let sel = document.getElementById(id);
+            if (sel) sel.innerHTML = scenarios.filter(s => s.status === 'active').map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+        });
+    }
+    
+    function updateScenarioSelect() {
+        let roomId = parseInt(document.getElementById('bookingRoom').value);
+        let scenarioSelect = document.getElementById('bookingScenario');
+        if (!roomId) { scenarioSelect.innerHTML = '<option value="">Выберите помещение</option>'; scenarioSelect.disabled = true; return; }
+        let room = rooms.find(r => r.id === roomId);
+        if (room) {
+            let available = scenarios.filter(s => room.scenarioIds.includes(s.id) && s.status === 'active');
+            scenarioSelect.innerHTML = available.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+            scenarioSelect.disabled = available.length === 0;
+        }
+    }
+    
+    // ========== EVENT LISTENERS ==========
+    document.getElementById('massCreateBtn')?.addEventListener('click', massCreateSlots);
+    document.getElementById('refreshSlotsBtn')?.addEventListener('click', renderSlotsManagement);
+    document.getElementById('saveTemplateBtn')?.addEventListener('click', () => { renderPriceGrid(); alert('Сохранено'); });
+    
+    document.getElementById('addPolicyBtn')?.addEventListener('click', () => { let n=document.getElementById('policyName').value, d=document.getElementById('policyDate').value, p=+document.getElementById('policyPercent').value; if(n&&d&&p) specialPolicies.push({id:nextPolicyId++,name:n,dateExpr:d,percent:p}); renderSpecialPolicies(); renderPriceGrid(); });
+    document.getElementById('addSegmentBtn')?.addEventListener('click', () => { let n=document.getElementById('segmentName').value, r=document.getElementById('segmentRange').value; if(n&&r) schedules.push({id:nextScheduleId++,name:n,dateRangeStr:r,policyIds:[]}); renderScheduleList(); renderPriceGrid(); });
+    document.getElementById('addScenarioBtn')?.addEventListener('click', () => { let n=document.getElementById('scenarioName').value, dur=+document.getElementById('scenarioDuration').value, diff=+document.getElementById('scenarioDifficulty').value, pl=document.getElementById('scenarioPlayers').value, desc=document.getElementById('scenarioDescription').value, stat=document.getElementById('scenarioStatus').value; if(n&&dur&&diff) scenarios.push({id:nextScenarioId++,name:n,duration:dur,difficulty:diff,players:pl,description:desc,status:stat,defaultBookingType:"public",maxSeats:6}); renderScenarios(); renderRoomCheckboxes(); updateRoomsList(); renderScenarioPolicies(); });
+    document.getElementById('addRoomBtn')?.addEventListener('click', () => { let n=document.getElementById('roomName').value; let ch=Array.from(document.querySelectorAll('#roomScenariosCheckboxContainer input:checked')).map(cb=>+cb.value); if(n) rooms.push({id:nextRoomId++,name:n,scenarioIds:ch}); updateRoomsList(); updateSelects(); });
+    document.getElementById('addGroupPolicyBtn')?.addEventListener('click', () => { let n=document.getElementById('groupPolicyName').value, min=+document.getElementById('groupMinGuests').value, max=+document.getElementById('groupMaxGuests').value, disc=+document.getElementById('groupDiscount').value; if(n&&min&&max&&disc) groupPolicies.push({id:nextGroupId++,name:n,minGuests:min,maxGuests:max,discount:disc}); renderGroupPolicies(); });
+    document.getElementById('addPromoBtn')?.addEventListener('click', () => { let c=document.getElementById('promoCode').value.toUpperCase(), t=document.getElementById('promoType').value, v=+document.getElementById('promoValue').value, ms=+document.getElementById('promoMinSum').value, mu=+document.getElementById('promoMaxUses').value; if(c&&v) promoCodes.push({id:nextPromoId++,code:c,type:t,value:v,minSum:ms,maxUses:mu,usedCount:0}); renderPromoCodes(); });
+    
+    function init() {
+        updateSelects();
+        renderPriceGrid();
+        renderTemplateEditor();
+        renderSpecialPolicies();
+        renderScheduleList();
+        renderScenarios();
+        renderRoomCheckboxes();
+        updateRoomsList();
+        renderGroupPolicies();
+        renderPromoCodes();
+        renderScenarioPolicies();
+        renderSlotsManagement();
+        renderAvailableSlots();
+        renderBookingsList();
+    }
     init();
-    document.querySelectorAll('.tab-btn').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active-pane'));document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.getElementById(btn.dataset.tab).classList.add('active-pane');if(btn.dataset.tab==='tab9')calculateAndUpdate();if(btn.dataset.tab==='tab1')renderPriceGrid();if(btn.dataset.tab==='tab2')renderTemplateEditor();}));
+    
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active-pane'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.tab).classList.add('active-pane');
+        if (btn.dataset.tab === 'tab1') renderPriceGrid();
+        if (btn.dataset.tab === 'tab2') renderTemplateEditor();
+        if (btn.dataset.tab === 'tab10') { renderSlotsManagement(); renderScenarioPolicies(); }
+    }));
 </script>
 </body>
 </html>
