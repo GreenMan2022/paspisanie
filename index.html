@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Квест-центр: Цена за человека + групповые скидки</title>
+    <title>Квест-центр: Полная система управления</title>
     <style>
         * {
             box-sizing: border-box;
@@ -229,9 +229,27 @@
             border-top: 1px solid #e5e7eb;
         }
 
-        .per-person {
-            font-size: 0.85rem;
-            color: #6b7280;
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            padding: 6px 14px;
+            border-radius: 40px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .checkbox-item input {
+            width: 18px;
+            height: 18px;
+            margin: 0;
         }
     </style>
 </head>
@@ -249,102 +267,169 @@
         <button class="tab-btn active" data-tab="tab9">📝 Бронирования</button>
     </div>
 
-    <!-- Вкладка 1-8: краткое содержание -->
-    <div id="tab1" class="tab-pane"><h3>🗓️ Таблица цен (за 1 человека)</h3><div class="table-wrapper"><table class="price-table"><thead>汽<th>ДАТА</th><th>10:00</th><th>11:00</th><th>12:00</th><th>13:00</th><th>14:00</th><th>15:00</th><th>16:00</th><th>17:00</th></thead><tbody id="priceGridBody"></tbody>}</div><div class="info-note">💰 Цена указана за 1 человека. Итоговая сумма = цена × количество гостей, с применением групповых скидок.</div></div>
-    <div id="tab2" class="tab-pane"><h3>📋 Шаблоны цен (за человека)</h3><div class="table-wrapper">\n<table><thead><tr><th>День</th><th>Утро</th><th>День</th><th>Вечер</th></tr></thead><tbody id="priceTemplateBody"></tbody></table></div><button id="saveTemplateBtn" class="primary">Сохранить</button></div>
-    <div id="tab3" class="tab-pane"><h3>🎯 Особые политики</h3><div class="flex-form"><div class="field-group"><label>Название</label><input id="policyName"></div><div class="field-group"><label>Дата</label><input id="policyDate" placeholder="30.03."></div><div class="field-group"><label>%</label><input id="policyPercent"></div><button id="addPolicyBtn">+</button></div><div class="table-wrapper"><table><thead><tr><th>Название</th><th>Дата</th><th>%</th><th></th></tr></thead><tbody id="specialPoliciesList"></tbody></table></div></div>
-    <div id="tab4" class="tab-pane"><h3>📆 Расписание</h3><div class="flex-form"><div class="field-group"><label>Название</label><input id="segmentName"></div><div class="field-group"><label>Период</label><input id="segmentRange" placeholder="01.03-31.03"></div><button id="addSegmentBtn">+</button></div><div class="table-wrapper"><table><thead><tr><th>Название</th><th>Период</th><th>Политики</th><th></th></tr></thead><tbody id="scheduleList"></tbody></table></div></div>
-    <div id="tab5" class="tab-pane"><h3>🎮 Сценарии</h3><div class="two-columns"><div><input id="scenarioName" placeholder="Название"><input id="scenarioDuration" placeholder="Длительность (мин)"><input id="scenarioDifficulty" placeholder="Сложность 1-5"><input id="scenarioPlayers" placeholder="2-6"><textarea id="scenarioDescription" placeholder="Описание"></textarea><select id="scenarioStatus"><option value="active">Активен</option><option value="inactive">Неактивен</option></select><button id="addScenarioBtn" class="primary">Сохранить</button></div><div><div class="table-wrapper"><table><thead><tr><th>Название</th><th>Длит</th><th>Сложн</th><th>Игроки</th><th>Статус</th><th></th></tr></thead><tbody id="scenariosList"></tbody></table></div></div></div></div>
-    <div id="tab6" class="tab-pane"><h3>🏢 Помещения</h3><div class="two-columns"><div><input id="roomName" placeholder="Название комнаты"><div id="roomScenariosCheckboxContainer" class="card"></div><button id="addRoomBtn" class="primary">Сохранить</button></div><div><div class="table-wrapper"><table><thead><tr><th>Комната</th><th>Сценарии</th><th></th></tr></thead><tbody id="roomsList"></tbody></table></div></div></div></div>
-    <div id="tab7" class="tab-pane"><h3>👥 Групповые политики (скидка от общего количества гостей)</h3><div class="flex-form"><div class="field-group"><label>Название</label><input id="groupPolicyName" placeholder="Компания друзей"></div><div class="field-group"><label>От (чел)</label><input id="groupMinGuests" type="number" placeholder="4"></div><div class="field-group"><label>До (чел)</label><input id="groupMaxGuests" type="number" placeholder="6"></div><div class="field-group"><label>Скидка %</label><input id="groupDiscount" type="number" placeholder="10"></div><button id="addGroupPolicyBtn">+</button></div><div class="table-wrapper"><table><thead><tr><th>Название</th><th>Кол-во гостей</th><th>Скидка</th><th></th></tr></thead><tbody id="groupPoliciesList"></tbody></table></div><div class="info-note">🎯 Скидка применяется к общей сумме (цена за человека × количество гостей). Например: цена 100₽/чел, 4 гостя = 400₽, скидка 10% = 360₽.</div></div>
-    <div id="tab8" class="tab-pane"><h3>🎫 Промокоды</h3><div class="flex-form"><div class="field-group"><label>Код</label><input id="promoCode"></div><div class="field-group"><label>Тип</label><select id="promoType"><option value="percent">%</option><option value="fixed">Фикс. руб.</option></select></div><div class="field-group"><label>Значение</label><input id="promoValue" type="number"></div><div class="field-group"><label>Мин. сумма</label><input id="promoMinSum" type="number"></div><div class="field-group"><label>Лимит</label><input id="promoMaxUses" type="number" placeholder="0=безлимит"></div><button id="addPromoBtn">+</button></div><div class="table-wrapper"><table><thead><tr><th>Код</th><th>Скидка</th><th>Мин. сумма</th><th>Осталось</th><th></th></tr></thead><tbody id="promoCodesList"></tbody></table></div></div>
+    <!-- Вкладка 1: Цены (таблица) -->
+    <div id="tab1" class="tab-pane">
+        <h3>🗓️ Таблица цен (за 1 человека)</h3>
+        <div class="table-wrapper">
+            <table class="price-table">
+                <thead>汽<th>ДАТА</th><th>10:00</th><th>11:00</th><th>12:00</th><th>13:00</th><th>14:00</th><th>15:00</th><th>16:00</th><th>17:00</th></thead>
+                <tbody id="priceGridBody"></tbody>
+            </table>
+        </div>
+        <div class="info-note">💰 Цена указана за 1 человека. Итоговая сумма = цена × количество гостей, с применением групповых скидок и промокодов.</div>
+    </div>
 
-    <!-- Вкладка 9: БРОНИРОВАНИЯ С РАСЧЁТОМ ЗА КАЖДОГО КЛИЕНТА -->
+    <!-- Вкладка 2: ШАБЛОНЫ ЦЕН (основной раздел) -->
+    <div id="tab2" class="tab-pane">
+        <h3>📋 Шаблоны цен (базовые цены за 1 человека)</h3>
+        <div class="field-group" style="max-width: 300px; margin-bottom: 20px;">
+            <label>Название шаблона</label>
+            <input type="text" id="templateName" value="Основной шаблон">
+        </div>
+        <div class="table-wrapper">
+            <table>
+                <thead><tr><th>День недели</th><th>УТРО (06:00-12:00)</th><th>ДЕНЬ (12:00-18:00)</th><th>ВЕЧЕР (18:00-23:00)</th></tr></thead>
+                <tbody id="priceTemplateBody"></tbody>
+            </table>
+        </div>
+        <button id="saveTemplateBtn" class="primary">💾 СОХРАНИТЬ ШАБЛОН</button>
+        <div class="info-note">⚙️ Здесь задаются базовые цены для каждого дня недели и временного интервала. Цены применяются ко всем датам, если не переопределены особыми политиками.</div>
+    </div>
+
+    <!-- Вкладка 3: Особые политики -->
+    <div id="tab3" class="tab-pane">
+        <h3>🎯 Особые политики (наценки/скидки на конкретные даты)</h3>
+        <div class="flex-form">
+            <div class="field-group"><label>Название</label><input id="policyName" placeholder="8 марта"></div>
+            <div class="field-group"><label>Дата / диапазон</label><input id="policyDate" placeholder="08.03. или 01.03-10.03"></div>
+            <div class="field-group"><label>%</label><input id="policyPercent" placeholder="+10"></div>
+            <button id="addPolicyBtn" class="primary">➕ Добавить</button>
+        </div>
+        <div class="table-wrapper">
+            <table><thead><tr><th>Название</th><th>Дата / промежуток</th><th>Коэффициент</th><th></th></tr></thead>
+            <tbody id="specialPoliciesList"></tbody></table>
+        </div>
+    </div>
+
+    <!-- Вкладка 4: Расписание -->
+    <div id="tab4" class="tab-pane">
+        <h3>📆 Расписание (привязка политик к периодам)</h3>
+        <div class="flex-form">
+            <div class="field-group"><label>Название отрезка</label><input id="segmentName" placeholder="Март"></div>
+            <div class="field-group"><label>Период</label><input id="segmentRange" placeholder="01.03-31.03"></div>
+            <button id="addSegmentBtn" class="primary">➕ Разместить</button>
+        </div>
+        <div class="table-wrapper">
+            <table><thead><tr><th>Название</th><th>Период</th><th>Политики</th><th></th></tr></thead>
+            <tbody id="scheduleList"></tbody></table>
+        </div>
+    </div>
+
+    <!-- Вкладка 5: Сценарии -->
+    <div id="tab5" class="tab-pane">
+        <h3>🎮 Сценарии</h3>
+        <div class="two-columns">
+            <div>
+                <input id="scenarioName" placeholder="Название сценария">
+                <input id="scenarioDuration" type="number" placeholder="Длительность (мин)">
+                <input id="scenarioDifficulty" type="number" placeholder="Сложность 1-5">
+                <input id="scenarioPlayers" placeholder="Кол-во игроков (2-6)">
+                <textarea id="scenarioDescription" placeholder="Описание"></textarea>
+                <select id="scenarioStatus"><option value="active">Активен</option><option value="inactive">Неактивен</option></select>
+                <button id="addScenarioBtn" class="primary" style="margin-top: 16px;">💾 Сохранить</button>
+            </div>
+            <div>
+                <div class="table-wrapper"><table><thead><tr><th>Название</th><th>Длит</th><th>Сложн</th><th>Игроки</th><th>Статус</th><th></th></tr></thead>
+                <tbody id="scenariosList"></tbody></table></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Вкладка 6: Помещения -->
+    <div id="tab6" class="tab-pane">
+        <h3>🏢 Помещения</h3>
+        <div class="two-columns">
+            <div>
+                <input id="roomName" placeholder="Название комнаты">
+                <div class="card" style="margin-top: 16px;">
+                    <label>🎮 Выберите сценарии для комнаты:</label>
+                    <div id="roomScenariosCheckboxContainer" class="checkbox-group"></div>
+                </div>
+                <button id="addRoomBtn" class="primary" style="margin-top: 16px;">🏠 Сохранить помещение</button>
+            </div>
+            <div>
+                <div class="table-wrapper"><table><thead><tr><th>Комната</th><th>Сценарии</th><th></th></tr></thead>
+                <tbody id="roomsList"></tbody></table></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Вкладка 7: Групповые политики -->
+    <div id="tab7" class="tab-pane">
+        <h3>👥 Групповые политики (скидка от количества гостей)</h3>
+        <div class="flex-form">
+            <div class="field-group"><label>Название</label><input id="groupPolicyName" placeholder="Компания друзей"></div>
+            <div class="field-group"><label>От (чел)</label><input id="groupMinGuests" type="number" placeholder="4"></div>
+            <div class="field-group"><label>До (чел)</label><input id="groupMaxGuests" type="number" placeholder="6"></div>
+            <div class="field-group"><label>Скидка %</label><input id="groupDiscount" type="number" placeholder="10"></div>
+            <button id="addGroupPolicyBtn" class="primary">➕ Добавить</button>
+        </div>
+        <div class="table-wrapper">
+            <table><thead><tr><th>Название</th><th>Кол-во гостей</th><th>Скидка</th><th></th></tr></thead>
+            <tbody id="groupPoliciesList"></tbody></table>
+        </div>
+        <div class="info-note">🎯 Скидка применяется к общей сумме (цена за человека × количество гостей). Пример: 100₽/чел × 4 гостя = 400₽, скидка 10% = 360₽.</div>
+    </div>
+
+    <!-- Вкладка 8: Промокоды -->
+    <div id="tab8" class="tab-pane">
+        <h3>🎫 Промокоды</h3>
+        <div class="flex-form">
+            <div class="field-group"><label>Код</label><input id="promoCode" placeholder="WELCOME10"></div>
+            <div class="field-group"><label>Тип</label><select id="promoType"><option value="percent">%</option><option value="fixed">Фикс. руб.</option></select></div>
+            <div class="field-group"><label>Значение</label><input id="promoValue" type="number"></div>
+            <div class="field-group"><label>Мин. сумма</label><input id="promoMinSum" type="number"></div>
+            <div class="field-group"><label>Лимит</label><input id="promoMaxUses" type="number" placeholder="0=безлимит"></div>
+            <button id="addPromoBtn" class="primary">➕ Добавить</button>
+        </div>
+        <div class="table-wrapper">
+            <table><thead><tr><th>Код</th><th>Скидка</th><th>Мин. сумма</th><th>Осталось</th><th></th></tr></thead>
+            <tbody id="promoCodesList"></tbody></table>
+        </div>
+    </div>
+
+    <!-- Вкладка 9: Бронирования -->
     <div id="tab9" class="tab-pane active-pane">
         <h3>📝 Создание бронирования (цена за человека + групповые скидки)</h3>
         <div class="two-columns">
             <div class="card">
                 <h4>📋 Выбор услуг</h4>
-                <div class="field-group">
-                    <label>🏢 Помещение</label>
-                    <select id="bookingRoom">
-                        <option value="">Выберите помещение</option>
-                    </select>
-                </div>
-                <div class="field-group">
-                    <label>🎮 Сценарий</label>
-                    <select id="bookingScenario" disabled>
-                        <option value="">Сначала выберите помещение</option>
-                    </select>
-                </div>
-                <div class="field-group">
-                    <label>📅 Дата</label>
-                    <input type="date" id="bookingDate" value="2026-03-30">
-                </div>
-                <div class="field-group">
-                    <label>⏰ Время</label>
-                    <select id="bookingTime">
-                        <option>10:00</option><option>11:00</option><option>12:00</option><option>13:00</option>
-                        <option>14:00</option><option>15:00</option><option>16:00</option><option>17:00</option>
-                    </select>
-                </div>
-                <div class="field-group">
-                    <label>👥 Количество гостей</label>
-                    <input type="number" id="bookingGuests" value="2" min="1" max="20">
-                </div>
-                <div class="field-group">
-                    <label>🎫 Промокод</label>
-                    <div style="display: flex; gap: 8px;">
-                        <input type="text" id="bookingPromo" placeholder="Введите промокод">
-                        <button id="applyPromoBtn" class="small">Применить</button>
-                    </div>
-                </div>
+                <div class="field-group"><label>🏢 Помещение</label><select id="bookingRoom"><option value="">Выберите помещение</option></select></div>
+                <div class="field-group"><label>🎮 Сценарий</label><select id="bookingScenario" disabled><option value="">Сначала выберите помещение</option></select></div>
+                <div class="field-group"><label>📅 Дата</label><input type="date" id="bookingDate" value="2026-03-30"></div>
+                <div class="field-group"><label>⏰ Время</label><select id="bookingTime"><option>10:00</option><option>11:00</option><option>12:00</option><option>13:00</option><option>14:00</option><option>15:00</option><option>16:00</option><option>17:00</option></select></div>
+                <div class="field-group"><label>👥 Количество гостей</label><input type="number" id="bookingGuests" value="2" min="1" max="20"></div>
+                <div class="field-group"><label>🎫 Промокод</label><div style="display: flex; gap: 8px;"><input type="text" id="bookingPromo" placeholder="Введите промокод"><button id="applyPromoBtn" class="small">Применить</button></div></div>
                 <div id="promoMessage" style="margin-top: 12px; display: none;"></div>
             </div>
             <div class="card">
                 <h4>💰 Расчёт стоимости</h4>
-                <div id="calculationResult">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                        <span>Цена за человека:</span>
-                        <strong><span id="pricePerPerson">0</span> ₽</strong>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: #4b5563;">
-                        <span>Количество гостей:</span>
-                        <strong><span id="guestsCount">0</span> чел.</strong>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <span>Сумма до скидок:</span>
-                        <strong><span id="subtotalBeforeDiscount">0</span> ₽</strong>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: #f97316;">
-                        <span>👥 Групповая скидка:</span>
-                        <strong><span id="groupDiscountPercent">0</span>% <span id="groupDiscountAmount">(0 ₽)</span></strong>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: #10b981;">
-                        <span>🎫 Промокод:</span>
-                        <strong><span id="promoAppliedDisplay">—</span></strong>
-                    </div>
-                    <div style="border-top: 2px solid #e2e8f0; margin: 12px 0; padding-top: 12px;">
-                        <div style="display: flex; justify-content: space-between; align-items: baseline;">
-                            <span style="font-size: 1.1rem; font-weight: 600;">ИТОГО:</span>
-                            <span id="totalPriceDisplay" class="total-price">0</span>
-                        </div>
-                        <div id="priceBreakdown" class="price-breakdown"></div>
-                    </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;"><span>Цена за человека:</span><strong><span id="pricePerPerson">0</span> ₽</strong></div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: #4b5563;"><span>Количество гостей:</span><strong><span id="guestsCount">0</span> чел.</strong></div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span>Сумма до скидок:</span><strong><span id="subtotalBeforeDiscount">0</span> ₽</strong></div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: #f97316;"><span>👥 Групповая скидка:</span><strong><span id="groupDiscountPercent">0</span>% <span id="groupDiscountAmount">(0 ₽)</span></strong></div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: #10b981;"><span>🎫 Промокод:</span><strong><span id="promoAppliedDisplay">—</span></strong></div>
+                <div style="border-top: 2px solid #e2e8f0; margin: 12px 0; padding-top: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: baseline;"><span style="font-size: 1.1rem; font-weight: 600;">ИТОГО:</span><span id="totalPriceDisplay" class="total-price">0</span></div>
+                    <div id="priceBreakdown" class="price-breakdown"></div>
                 </div>
                 <button id="confirmBookingBtn" class="primary" style="margin-top: 16px; width: 100%;" disabled>✅ Забронировать</button>
             </div>
         </div>
         <div style="margin-top: 24px;">
             <h4>📜 История бронирований</h4>
-            <div class="table-wrapper">
-                <table>
-                    <thead><tr><th>Дата/Время</th><th>Помещение</th><th>Сценарий</th><th>Гостей</th><th>Цена/чел</th><th>Сумма</th></tr></thead>
-                    <tbody id="bookingsList">
-                        <tr><td colspan="6" style="text-align: center;">Нет бронирований</td></tr>
-                    </tbody>
-                </table>
-            </div>
+            <div class="table-wrapper"><table><thead><tr><th>Дата/Время</th><th>Помещение</th><th>Сценарий</th><th>Гостей</th><th>Цена/чел</th><th>Сумма</th></tr></thead>
+            <tbody id="bookingsList"><tr><td colspan="6" style="text-align: center;">Нет бронирований</td></tr></tbody></table></div>
         </div>
     </div>
 </div>
@@ -375,72 +460,16 @@
     ];
     let bookings = [];
     let nextScenarioId = 2, nextRoomId = 2, nextPolicyId = 3, nextScheduleId = 2, nextGroupId = 4, nextPromoId = 3;
-    
-    let currentCalculation = { valid: false, finalPrice: 0, details: {} };
+    let currentCalculation = { valid: false, finalPrice: 0 };
 
-    // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
-    function getWeekdayByDate(day, month, year = 2026) { 
-        return ["Воскресенье","Понедельник","Вторник","Среда","Четверг","Пятница","Суббота"][new Date(year, month-1, day).getDay()]; 
-    }
-    
-    function getBasePriceForWeekdayAndHour(weekday, hour) {
-        let t = priceTemplate[weekday];
-        if (!t) return 150;
-        if (hour >= 6 && hour < 12) return t.morning;
-        if (hour >= 12 && hour < 18) return t.day;
-        return t.evening;
-    }
-    
-    function getTotalPercentForDate(day, month) {
-        let total = 0;
-        for (let s of schedules) {
-            let [start, end] = s.dateRangeStr.split('-');
-            let [sD, sM] = start.split('.').map(Number);
-            let [eD, eM] = end.split('.').map(Number);
-            let target = month*100+day, startNum = sM*100+sD, endNum = eM*100+eD;
-            if (target >= startNum && target <= endNum) {
-                for (let pid of (s.policyIds || [])) {
-                    let p = specialPolicies.find(pol => pol.id === pid);
-                    if (p) total += p.percent;
-                }
-            }
-        }
-        return total;
-    }
-    
-    function getPricePerPerson(day, month, hour) {
-        let weekday = getWeekdayByDate(day, month);
-        let base = getBasePriceForWeekdayAndHour(weekday, hour);
-        let percent = getTotalPercentForDate(day, month);
-        return Math.round(base * (1 + percent / 100) * 10) / 10;
-    }
-    
-    function getGroupDiscountPercent(guests) {
-        for (let p of groupPolicies) {
-            if (guests >= p.minGuests && guests <= p.maxGuests) {
-                return p.discount;
-            }
-        }
-        return 0;
-    }
-    
-    function getPromoByCode(code) { 
-        return promoCodes.find(p => p.code.toUpperCase() === code.toUpperCase()); 
-    }
-    
-    function validatePromo(promo, subtotal) {
-        if (!promo) return null;
-        if (promo.maxUses > 0 && promo.usedCount >= promo.maxUses) {
-            return { valid: false, msg: "Промокод использован максимальное число раз" };
-        }
-        if (subtotal < promo.minSum) {
-            return { valid: false, msg: `Минимальная сумма для промокода: ${promo.minSum}₽` };
-        }
-        let discount = promo.type === "percent" ? subtotal * promo.value / 100 : promo.value;
-        return { valid: true, discount: Math.min(discount, subtotal), msg: `Промокод применён! Скидка: ${discount}₽` };
-    }
+    function getWeekdayByDate(day, month, year = 2026) { return ["Воскресенье","Понедельник","Вторник","Среда","Четверг","Пятница","Суббота"][new Date(year, month-1, day).getDay()]; }
+    function getBasePriceForWeekdayAndHour(weekday, hour) { let t = priceTemplate[weekday]; if (!t) return 150; if (hour >= 6 && hour < 12) return t.morning; if (hour >= 12 && hour < 18) return t.day; return t.evening; }
+    function getTotalPercentForDate(day, month) { let total = 0; for (let s of schedules) { let [start, end] = s.dateRangeStr.split('-'); let [sD, sM] = start.split('.').map(Number); let [eD, eM] = end.split('.').map(Number); let target = month*100+day, startNum = sM*100+sD, endNum = eM*100+eD; if (target >= startNum && target <= endNum) { for (let pid of (s.policyIds || [])) { let p = specialPolicies.find(pol => pol.id === pid); if (p) total += p.percent; } } } return total; }
+    function getPricePerPerson(day, month, hour) { let weekday = getWeekdayByDate(day, month); let base = getBasePriceForWeekdayAndHour(weekday, hour); let percent = getTotalPercentForDate(day, month); return Math.round(base * (1 + percent / 100) * 10) / 10; }
+    function getGroupDiscountPercent(guests) { for (let p of groupPolicies) if (guests >= p.minGuests && guests <= p.maxGuests) return p.discount; return 0; }
+    function getPromoByCode(code) { return promoCodes.find(p => p.code.toUpperCase() === code.toUpperCase()); }
+    function validatePromo(promo, subtotal) { if (!promo) return null; if (promo.maxUses > 0 && promo.usedCount >= promo.maxUses) return { valid: false, msg: "Промокод использован максимальное число раз" }; if (subtotal < promo.minSum) return { valid: false, msg: `Минимальная сумма: ${promo.minSum}₽` }; let discount = promo.type === "percent" ? subtotal * promo.value / 100 : promo.value; return { valid: true, discount: Math.min(discount, subtotal), msg: `Скидка: ${discount}₽` }; }
 
-    // ========== ДИНАМИЧЕСКИЙ РАСЧЁТ (ЦЕНА ЗА ЧЕЛОВЕКА × КОЛИЧЕСТВО) ==========
     function calculateAndUpdate() {
         const roomId = parseInt(document.getElementById('bookingRoom').value);
         const scenarioId = parseInt(document.getElementById('bookingScenario').value);
@@ -448,213 +477,62 @@
         const time = document.getElementById('bookingTime').value;
         const guests = parseInt(document.getElementById('bookingGuests').value) || 1;
         const promoCode = document.getElementById('bookingPromo').value.trim();
-
-        // Валидация
-        if (!roomId || isNaN(scenarioId) || !dateStr || !time || guests < 1) {
-            document.getElementById('totalPriceDisplay').innerText = '0';
-            document.getElementById('confirmBookingBtn').disabled = true;
-            return;
-        }
-
+        if (!roomId || isNaN(scenarioId) || !dateStr || !time) { document.getElementById('totalPriceDisplay').innerText = '0'; document.getElementById('confirmBookingBtn').disabled = true; return; }
         const room = rooms.find(r => r.id === roomId);
         const scenario = scenarios.find(s => s.id === scenarioId);
-        if (!room || !scenario || scenario.status !== 'active') {
-            document.getElementById('confirmBookingBtn').disabled = true;
-            return;
-        }
-
+        if (!room || !scenario) { document.getElementById('confirmBookingBtn').disabled = true; return; }
         const [year, month, day] = dateStr.split('-').map(Number);
         const hour = parseInt(time.split(':')[0]);
-        
-        // Цена за 1 человека
         const pricePerPerson = getPricePerPerson(day, month, hour);
-        
-        // Сумма до скидок (цена за человека × количество гостей)
         const subtotalBeforeDiscount = pricePerPerson * guests;
-        
-        // Групповая скидка (процент от общей суммы)
         const groupDiscountPercent = getGroupDiscountPercent(guests);
         const groupDiscountAmount = subtotalBeforeDiscount * groupDiscountPercent / 100;
         const afterGroup = subtotalBeforeDiscount - groupDiscountAmount;
-        
-        // Промокод
-        let promoResult = null;
-        let promoDiscount = 0;
-        let promoValid = false;
-        if (promoCode) {
-            const promo = getPromoByCode(promoCode);
-            if (promo) {
-                promoResult = validatePromo(promo, afterGroup);
-                if (promoResult && promoResult.valid) {
-                    promoDiscount = promoResult.discount;
-                    promoValid = true;
-                }
-            }
-        }
-        
+        let promoResult = null, promoDiscount = 0, promoValid = false;
+        if (promoCode) { const promo = getPromoByCode(promoCode); if (promo) { promoResult = validatePromo(promo, afterGroup); if (promoResult?.valid) { promoDiscount = promoResult.discount; promoValid = true; } } }
         const finalPrice = Math.max(0, Math.round(afterGroup - promoDiscount));
-        
-        // Обновляем UI
         document.getElementById('pricePerPerson').innerText = pricePerPerson;
         document.getElementById('guestsCount').innerText = guests;
         document.getElementById('subtotalBeforeDiscount').innerHTML = `<strong>${subtotalBeforeDiscount}</strong> ₽ (${pricePerPerson}₽ × ${guests})`;
         document.getElementById('groupDiscountPercent').innerText = groupDiscountPercent;
         document.getElementById('groupDiscountAmount').innerHTML = groupDiscountPercent > 0 ? `(-${Math.round(groupDiscountAmount)} ₽)` : '(0 ₽)';
         document.getElementById('totalPriceDisplay').innerText = finalPrice;
-        
-        // Детализация расчёта
-        let breakdown = `${pricePerPerson}₽ × ${guests} чел = ${subtotalBeforeDiscount}₽`;
-        if (groupDiscountPercent > 0) {
-            breakdown += `\nГрупповая скидка ${groupDiscountPercent}%: -${Math.round(groupDiscountAmount)}₽`;
-        }
-        if (promoDiscount > 0) {
-            breakdown += `\nПромокод: -${promoDiscount}₽`;
-        }
+        let breakdown = `${pricePerPerson}₽ × ${guests} = ${subtotalBeforeDiscount}₽`;
+        if (groupDiscountPercent > 0) breakdown += `\nГрупповая скидка ${groupDiscountPercent}%: -${Math.round(groupDiscountAmount)}₽`;
+        if (promoDiscount > 0) breakdown += `\nПромокод: -${promoDiscount}₽`;
         document.getElementById('priceBreakdown').innerHTML = breakdown.replace(/\n/g, '<br>');
-        
-        // Промокод сообщение
-        if (promoValid && promoResult) {
-            document.getElementById('promoAppliedDisplay').innerHTML = `<span style="color:#10b981;">${promoCode} (-${promoDiscount}₽)</span>`;
-            document.getElementById('promoMessage').style.display = 'block';
-            document.getElementById('promoMessage').className = 'info-note success-note';
-            document.getElementById('promoMessage').innerHTML = `✅ ${promoResult.msg}`;
-        } else if (promoCode && promoResult && !promoResult.valid) {
-            document.getElementById('promoAppliedDisplay').innerHTML = `<span style="color:#dc2626;">Недействителен</span>`;
-            document.getElementById('promoMessage').style.display = 'block';
-            document.getElementById('promoMessage').className = 'info-note error-note';
-            document.getElementById('promoMessage').innerHTML = `❌ ${promoResult.msg}`;
-        } else if (promoCode && !promoResult) {
-            document.getElementById('promoAppliedDisplay').innerHTML = `<span style="color:#dc2626;">Промокод не найден</span>`;
-            document.getElementById('promoMessage').style.display = 'block';
-            document.getElementById('promoMessage').className = 'info-note error-note';
-            document.getElementById('promoMessage').innerHTML = `❌ Промокод "${promoCode}" не существует`;
-        } else {
-            document.getElementById('promoAppliedDisplay').innerHTML = '—';
-            document.getElementById('promoMessage').style.display = 'none';
-        }
-        
-        // Сохраняем расчёт
-        currentCalculation = { 
-            valid: true, 
-            finalPrice, 
-            pricePerPerson,
-            guests,
-            subtotalBeforeDiscount,
-            groupDiscountPercent,
-            groupDiscountAmount,
-            promoDiscount,
-            promoCode: promoValid ? promoCode : null,
-            room, 
-            scenario, 
-            dateStr, 
-            time
-        };
+        if (promoValid && promoResult) { document.getElementById('promoAppliedDisplay').innerHTML = `<span style="color:#10b981;">${promoCode} (-${promoDiscount}₽)</span>`; document.getElementById('promoMessage').style.display = 'block'; document.getElementById('promoMessage').className = 'info-note success-note'; document.getElementById('promoMessage').innerHTML = `✅ ${promoResult.msg}`; }
+        else if (promoCode && promoResult && !promoResult.valid) { document.getElementById('promoAppliedDisplay').innerHTML = `<span style="color:#dc2626;">Недействителен</span>`; document.getElementById('promoMessage').style.display = 'block'; document.getElementById('promoMessage').className = 'info-note error-note'; document.getElementById('promoMessage').innerHTML = `❌ ${promoResult.msg}`; }
+        else if (promoCode && !promoResult) { document.getElementById('promoAppliedDisplay').innerHTML = `<span style="color:#dc2626;">Не найден</span>`; document.getElementById('promoMessage').style.display = 'block'; document.getElementById('promoMessage').className = 'info-note error-note'; document.getElementById('promoMessage').innerHTML = `❌ Промокод не существует`; }
+        else { document.getElementById('promoAppliedDisplay').innerHTML = '—'; document.getElementById('promoMessage').style.display = 'none'; }
+        currentCalculation = { valid: true, finalPrice, pricePerPerson, guests, subtotalBeforeDiscount, groupDiscountPercent, groupDiscountAmount, promoDiscount, promoCode: promoValid ? promoCode : null, room, scenario, dateStr, time };
         document.getElementById('confirmBookingBtn').disabled = false;
     }
 
-    // ========== ОБНОВЛЕНИЕ СЦЕНАРИЕВ ==========
     function updateScenariosByRoom() {
         const roomId = parseInt(document.getElementById('bookingRoom').value);
         const scenarioSelect = document.getElementById('bookingScenario');
-        if (!roomId) {
-            scenarioSelect.innerHTML = '<option value="">Сначала выберите помещение</option>';
-            scenarioSelect.disabled = true;
-            document.getElementById('confirmBookingBtn').disabled = true;
-            return;
-        }
+        if (!roomId) { scenarioSelect.innerHTML = '<option value="">Сначала выберите помещение</option>'; scenarioSelect.disabled = true; return; }
         const room = rooms.find(r => r.id === roomId);
-        if (room && room.scenarioIds && room.scenarioIds.length > 0) {
-            const availableScenarios = scenarios.filter(s => room.scenarioIds.includes(s.id) && s.status === 'active');
-            scenarioSelect.innerHTML = availableScenarios.map(s => `<option value="${s.id}">${s.name} (${s.duration} мин, ${s.players} чел)</option>`).join('');
-            scenarioSelect.disabled = availableScenarios.length === 0;
-            if (availableScenarios.length === 0) scenarioSelect.innerHTML = '<option value="">Нет активных сценариев</option>';
-        } else {
-            scenarioSelect.innerHTML = '<option value="">Нет сценариев в этой комнате</option>';
-            scenarioSelect.disabled = true;
-        }
+        if (room?.scenarioIds?.length) { const available = scenarios.filter(s => room.scenarioIds.includes(s.id) && s.status === 'active'); scenarioSelect.innerHTML = available.map(s => `<option value="${s.id}">${s.name} (${s.duration} мин)</option>`).join(''); scenarioSelect.disabled = available.length === 0; } 
+        else { scenarioSelect.innerHTML = '<option value="">Нет сценариев</option>'; scenarioSelect.disabled = true; }
         calculateAndUpdate();
     }
 
-    // ========== ОТРИСОВКА ==========
-    function renderPriceGrid() {
-        let tbody = document.getElementById('priceGridBody');
-        if (!tbody) return;
-        let html = '';
-        for (let i = 0; i < 7; i++) {
-            let d = new Date(2026, 2, 30 + i);
-            let day = d.getDate(), month = d.getMonth() + 1;
-            let cells = '';
-            for (let h of [10,11,12,13,14,15,16,17]) {
-                cells += `<td>${getPricePerPerson(day, month, h)} ₽</td>`;
-            }
-            html += `<tr><td style="font-weight:500;">${getWeekdayByDate(day, month).substring(0,2)} ${day}.${month}</td>${cells}</tr>`;
-        }
-        tbody.innerHTML = html;
-    }
-    
-    function renderTemplateEditor() {
-        let days = ["Понедельник","Вторник","Среда","Четверг","Пятница","Суббота","Воскресенье"];
-        let tbody = document.getElementById('priceTemplateBody');
-        tbody.innerHTML = days.map(d => `<tr><td>${d}</td><td><input class="morning" data-day="${d}" value="${priceTemplate[d].morning}"></td><td><input class="day" data-day="${d}" value="${priceTemplate[d].day}"></td><td><input class="evening" data-day="${d}" value="${priceTemplate[d].evening}"></td></tr>`).join('');
-        document.querySelectorAll('.morning').forEach(i => i.onchange = () => { priceTemplate[i.dataset.day].morning = +i.value; renderPriceGrid(); calculateAndUpdate(); });
-        document.querySelectorAll('.day').forEach(i => i.onchange = () => { priceTemplate[i.dataset.day].day = +i.value; renderPriceGrid(); calculateAndUpdate(); });
-        document.querySelectorAll('.evening').forEach(i => i.onchange = () => { priceTemplate[i.dataset.day].evening = +i.value; renderPriceGrid(); calculateAndUpdate(); });
-    }
-    
-    function renderSpecialPolicies() { 
-        let tbody = document.getElementById('specialPoliciesList'); 
-        tbody.innerHTML = specialPolicies.map(p => `<tr><td>${p.name}</td><td>${p.dateExpr}</td><td>${p.percent}%</td><td><button class="small del-policy" data-id="${p.id}">❌</button></td></tr>`).join('');
-        document.querySelectorAll('.del-policy').forEach(btn => btn.onclick = () => { specialPolicies = specialPolicies.filter(p => p.id != btn.dataset.id); renderSpecialPolicies(); renderPriceGrid(); calculateAndUpdate(); });
-    }
-    
-    function renderScheduleList() { 
-        let tbody = document.getElementById('scheduleList'); 
-        tbody.innerHTML = schedules.map(s => `<tr><td>${s.name}</td><td>${s.dateRangeStr}</td><td>${(s.policyIds || []).map(id => specialPolicies.find(p=>p.id===id)?.name).join(', ') || '—'}</td><td><button class="small del-sched" data-id="${s.id}">❌</button></td></tr>`).join('');
-        document.querySelectorAll('.del-sched').forEach(btn => btn.onclick = () => { schedules = schedules.filter(s => s.id != btn.dataset.id); renderScheduleList(); renderPriceGrid(); calculateAndUpdate(); });
-    }
-    
-    function renderScenarios() { 
-        let tbody = document.getElementById('scenariosList'); 
-        tbody.innerHTML = scenarios.map(s => `<tr><td>${s.name}</td><td>${s.duration}</td><td>${s.difficulty}</td><td>${s.players}</td><td><span class="status-badge ${s.status==='active'?'status-active':'status-inactive'}">${s.status==='active'?'Активен':'Неактивен'}</span></td><td><button class="small del-scen" data-id="${s.id}">❌</button></td></tr>`).join('');
-        document.querySelectorAll('.del-scen').forEach(btn => btn.onclick = () => { scenarios = scenarios.filter(s => s.id != btn.dataset.id); renderScenarios(); renderRoomCheckboxes(); updateRoomsList(); calculateAndUpdate(); });
-    }
-    
-    function renderRoomCheckboxes() { 
-        let container = document.getElementById('roomScenariosCheckboxContainer'); 
-        if(container) container.innerHTML = scenarios.map(s => `<div><input type="checkbox" id="roomScen_${s.id}" value="${s.id}"><label>${s.name}</label></div>`).join('') || '<div>Нет сценариев</div>'; 
-    }
-    
-    function updateRoomsList() { 
-        let tbody = document.getElementById('roomsList'); 
-        tbody.innerHTML = rooms.map(r => `<tr><td>${r.name}</td><td>${(r.scenarioIds || []).map(id => scenarios.find(s=>s.id===id)?.name).join(', ')}</td><td><button class="small del-room" data-id="${r.id}">❌</button></td></tr>`).join('');
-        document.querySelectorAll('.del-room').forEach(btn => btn.onclick = () => { rooms = rooms.filter(r => r.id != btn.dataset.id); updateRoomsList(); updateBookingRoomSelect(); calculateAndUpdate(); });
-    }
-    
-    function updateBookingRoomSelect() { 
-        let select = document.getElementById('bookingRoom'); 
-        select.innerHTML = '<option value="">Выберите помещение</option>' + rooms.map(r => `<option value="${r.id}">${r.name}</option>`).join(''); 
-        if(rooms.length > 0) select.value = rooms[0].id; 
-        updateScenariosByRoom(); 
-    }
-    
-    function renderGroupPolicies() { 
-        let tbody = document.getElementById('groupPoliciesList'); 
-        tbody.innerHTML = groupPolicies.map(p => `<tr><td>${p.name}</td><td>${p.minGuests}-${p.maxGuests} чел.</td><td>${p.discount}%</td><td><button class="small del-group" data-id="${p.id}">❌</button></td></tr>`).join('');
-        document.querySelectorAll('.del-group').forEach(btn => btn.onclick = () => { groupPolicies = groupPolicies.filter(g => g.id != btn.dataset.id); renderGroupPolicies(); calculateAndUpdate(); });
-    }
-    
-    function renderPromoCodes() { 
-        let tbody = document.getElementById('promoCodesList'); 
-        tbody.innerHTML = promoCodes.map(p => `<tr><td><strong>${p.code}</strong></td><td>${p.type==='percent'?p.value+'%':p.value+'₽'}</td><td>${p.minSum}₽</td><td>${p.maxUses>0?p.maxUses-p.usedCount:'∞'}</td><td><button class="small del-promo" data-id="${p.id}">❌</button></td></tr>`).join('');
-        document.querySelectorAll('.del-promo').forEach(btn => btn.onclick = () => { promoCodes = promoCodes.filter(c => c.id != btn.dataset.id); renderPromoCodes(); calculateAndUpdate(); });
-    }
-    
-    function renderBookings() { 
-        let tbody = document.getElementById('bookingsList'); 
-        tbody.innerHTML = bookings.length ? bookings.map(b => `<tr><td>${b.dateStr} ${b.time}</td><td>${b.room.name}</td><td>${b.scenario.name}</td><td>${b.guests}</td><td>${b.pricePerPerson}₽</td><td>${b.finalPrice}₽</td></tr>`).join('') : '<tr><td colspan="6" style="text-align: center;">Нет бронирований</td></tr>'; 
-    }
-    
-    // ========== EVENT LISTENERS ==========
+    // Отрисовка всех разделов
+    function renderPriceGrid() { let tbody = document.getElementById('priceGridBody'); if(!tbody) return; let html = ''; for(let i=0;i<7;i++){ let d=new Date(2026,2,30+i); let day=d.getDate(), month=d.getMonth()+1; let cells=''; for(let h of [10,11,12,13,14,15,16,17]) cells+=`<td>${getPricePerPerson(day,month,h)} ₽</td>`; html+=`<tr><td style="font-weight:500;">${getWeekdayByDate(day,month).substring(0,2)} ${day}.${month}</td>${cells}</tr>`; } tbody.innerHTML=html; }
+    function renderTemplateEditor() { let days=["Понедельник","Вторник","Среда","Четверг","Пятница","Суббота","Воскресенье"]; let tbody=document.getElementById('priceTemplateBody'); tbody.innerHTML=days.map(d=>`<tr><td>${d}</td><td><input class="morning" data-day="${d}" value="${priceTemplate[d].morning}">  \\s*<input class="day" data-day="${d}" value="${priceTemplate[d].day}">  \\s*<input class="evening" data-day="${d}" value="${priceTemplate[d].evening}">  \\s*`).join('').replace(/\\s+/g,' '); document.querySelectorAll('.morning').forEach(i=>i.onchange=()=>{priceTemplate[i.dataset.day].morning=+i.value;renderPriceGrid();calculateAndUpdate();}); document.querySelectorAll('.day').forEach(i=>i.onchange=()=>{priceTemplate[i.dataset.day].day=+i.value;renderPriceGrid();calculateAndUpdate();}); document.querySelectorAll('.evening').forEach(i=>i.onchange=()=>{priceTemplate[i.dataset.day].evening=+i.value;renderPriceGrid();calculateAndUpdate();}); }
+    function renderSpecialPolicies() { let tbody=document.getElementById('specialPoliciesList'); tbody.innerHTML=specialPolicies.map(p=>`<tr><td>${p.name}</td><td>${p.dateExpr}</td><td>${p.percent}%</td><td><button class="small del-policy" data-id="${p.id}">❌</button></td></tr>`).join(''); document.querySelectorAll('.del-policy').forEach(btn=>btn.onclick=()=>{specialPolicies=specialPolicies.filter(p=>p.id!=btn.dataset.id);renderSpecialPolicies();renderPriceGrid();calculateAndUpdate();}); }
+    function renderScheduleList() { let tbody=document.getElementById('scheduleList'); tbody.innerHTML=schedules.map(s=>`<tr><td>${s.name}</td><td>${s.dateRangeStr}</td><td>${(s.policyIds||[]).map(id=>specialPolicies.find(p=>p.id===id)?.name).join(', ')||'—'}</td><td><button class="small del-sched" data-id="${s.id}">❌</button></td></tr>`).join(''); document.querySelectorAll('.del-sched').forEach(btn=>btn.onclick=()=>{schedules=schedules.filter(s=>s.id!=btn.dataset.id);renderScheduleList();renderPriceGrid();calculateAndUpdate();}); }
+    function renderScenarios() { let tbody=document.getElementById('scenariosList'); tbody.innerHTML=scenarios.map(s=>`<tr><td>${s.name}</td><td>${s.duration}</td><td>${s.difficulty}</td><td>${s.players}</td><td><span class="status-badge ${s.status==='active'?'status-active':'status-inactive'}">${s.status==='active'?'Активен':'Неактивен'}</span></td><td><button class="small del-scen" data-id="${s.id}">❌</button></td></tr>`).join(''); document.querySelectorAll('.del-scen').forEach(btn=>btn.onclick=()=>{scenarios=scenarios.filter(s=>s.id!=btn.dataset.id);renderScenarios();renderRoomCheckboxes();updateRoomsList();calculateAndUpdate();}); }
+    function renderRoomCheckboxes() { let container=document.getElementById('roomScenariosCheckboxContainer'); if(container) container.innerHTML=scenarios.map(s=>`<div class="checkbox-item"><input type="checkbox" id="roomScen_${s.id}" value="${s.id}"><label>${s.name}</label></div>`).join('')||'<div>Нет сценариев</div>'; }
+    function updateRoomsList() { let tbody=document.getElementById('roomsList'); tbody.innerHTML=rooms.map(r=>`<tr><td>${r.name}</td><td>${(r.scenarioIds||[]).map(id=>scenarios.find(s=>s.id===id)?.name).join(', ')}</td><td><button class="small del-room" data-id="${r.id}">❌</button></td></tr>`).join(''); document.querySelectorAll('.del-room').forEach(btn=>btn.onclick=()=>{rooms=rooms.filter(r=>r.id!=btn.dataset.id);updateRoomsList();updateBookingRoomSelect();calculateAndUpdate();}); }
+    function updateBookingRoomSelect() { let select=document.getElementById('bookingRoom'); select.innerHTML='<option value="">Выберите помещение</option>'+rooms.map(r=>`<option value="${r.id}">${r.name}</option>`).join(''); if(rooms.length>0) select.value=rooms[0].id; updateScenariosByRoom(); }
+    function renderGroupPolicies() { let tbody=document.getElementById('groupPoliciesList'); tbody.innerHTML=groupPolicies.map(p=>`<tr><td>${p.name}</td><td>${p.minGuests}-${p.maxGuests}</td><td>${p.discount}%</td><td><button class="small del-group" data-id="${p.id}">❌</button></td></tr>`).join(''); document.querySelectorAll('.del-group').forEach(btn=>btn.onclick=()=>{groupPolicies=groupPolicies.filter(g=>g.id!=btn.dataset.id);renderGroupPolicies();calculateAndUpdate();}); }
+    function renderPromoCodes() { let tbody=document.getElementById('promoCodesList'); tbody.innerHTML=promoCodes.map(p=>`<tr><td><strong>${p.code}</strong></td><td>${p.type==='percent'?p.value+'%':p.value+'₽'}</td><td>${p.minSum}₽</td><td>${p.maxUses>0?p.maxUses-p.usedCount:'∞'}</td><td><button class="small del-promo" data-id="${p.id}">❌</button></td></tr>`).join(''); document.querySelectorAll('.del-promo').forEach(btn=>btn.onclick=()=>{promoCodes=promoCodes.filter(c=>c.id!=btn.dataset.id);renderPromoCodes();calculateAndUpdate();}); }
+    function renderBookings() { let tbody=document.getElementById('bookingsList'); tbody.innerHTML=bookings.length?bookings.map(b=>`<tr><td>${b.dateStr} ${b.time}</td><td>${b.room.name}</td><td>${b.scenario.name}</td><td>${b.guests}</td><td>${b.pricePerPerson}₽</td><td>${b.finalPrice}₽</td></tr>`).join(''):'<tr><td colspan="6" style="text-align: center;">Нет бронирований</td></tr>'; }
+
+    // Event Listeners
     document.getElementById('bookingRoom')?.addEventListener('change', updateScenariosByRoom);
     document.getElementById('bookingScenario')?.addEventListener('change', calculateAndUpdate);
     document.getElementById('bookingDate')?.addEventListener('change', calculateAndUpdate);
@@ -662,77 +540,18 @@
     document.getElementById('bookingGuests')?.addEventListener('input', calculateAndUpdate);
     document.getElementById('applyPromoBtn')?.addEventListener('click', calculateAndUpdate);
     document.getElementById('bookingPromo')?.addEventListener('input', calculateAndUpdate);
-    
-    document.getElementById('confirmBookingBtn')?.addEventListener('click', () => {
-        if (!currentCalculation.valid) return;
-        const { room, scenario, dateStr, time, guests, pricePerPerson, finalPrice, groupDiscountPercent, promoDiscount, promoCode } = currentCalculation;
-        if (promoCode) {
-            const promo = getPromoByCode(promoCode);
-            if (promo && promo.maxUses > 0) promo.usedCount++;
-            renderPromoCodes();
-        }
-        bookings.push({ room, scenario, dateStr, time, guests, pricePerPerson, finalPrice, groupDiscountPercent, promoDiscount });
-        renderBookings();
-        alert(`✅ Бронирование создано!\nКомната: ${room.name}\nСценарий: ${scenario.name}\nДата: ${dateStr} ${time}\nГостей: ${guests}\nЦена за человека: ${pricePerPerson}₽\nИтого: ${finalPrice}₽`);
-        calculateAndUpdate();
-    });
-    
-    document.getElementById('addPolicyBtn')?.addEventListener('click', () => { 
-        let name=document.getElementById('policyName').value, date=document.getElementById('policyDate').value, perc=+document.getElementById('policyPercent').value; 
-        if(name&&date&&perc) specialPolicies.push({id:nextPolicyId++,name,dateExpr:date,percent:perc}); 
-        renderSpecialPolicies(); renderPriceGrid(); calculateAndUpdate(); 
-    });
-    
-    document.getElementById('addSegmentBtn')?.addEventListener('click', () => { 
-        let name=document.getElementById('segmentName').value, range=document.getElementById('segmentRange').value; 
-        if(name&&range) schedules.push({id:nextScheduleId++,name,dateRangeStr:range,policyIds:[]}); 
-        renderScheduleList(); renderPriceGrid(); calculateAndUpdate(); 
-    });
-    
-    document.getElementById('addScenarioBtn')?.addEventListener('click', () => { 
-        let name=document.getElementById('scenarioName').value, dur=+document.getElementById('scenarioDuration').value, diff=+document.getElementById('scenarioDifficulty').value, players=document.getElementById('scenarioPlayers').value, desc=document.getElementById('scenarioDescription').value, status=document.getElementById('scenarioStatus').value; 
-        if(name&&dur&&diff) scenarios.push({id:nextScenarioId++,name,duration:dur,difficulty:diff,players,description:desc,status}); 
-        renderScenarios(); renderRoomCheckboxes(); updateRoomsList(); calculateAndUpdate(); 
-    });
-    
-    document.getElementById('addRoomBtn')?.addEventListener('click', () => { 
-        let name=document.getElementById('roomName').value; 
-        let checked=Array.from(document.querySelectorAll('#roomScenariosCheckboxContainer input:checked')).map(cb=>+cb.value); 
-        if(name) rooms.push({id:nextRoomId++,name,scenarioIds:checked}); 
-        updateRoomsList(); updateBookingRoomSelect(); calculateAndUpdate(); 
-    });
-    
-    document.getElementById('addGroupPolicyBtn')?.addEventListener('click', () => { 
-        let name=document.getElementById('groupPolicyName').value, min=+document.getElementById('groupMinGuests').value, max=+document.getElementById('groupMaxGuests').value, disc=+document.getElementById('groupDiscount').value; 
-        if(name&&min&&max&&disc) groupPolicies.push({id:nextGroupId++,name,minGuests:min,maxGuests:max,discount:disc}); 
-        renderGroupPolicies(); calculateAndUpdate(); 
-    });
-    
-    document.getElementById('addPromoBtn')?.addEventListener('click', () => { 
-        let code=document.getElementById('promoCode').value.toUpperCase(), type=document.getElementById('promoType').value, val=+document.getElementById('promoValue').value, minSum=+document.getElementById('promoMinSum').value, maxUses=+document.getElementById('promoMaxUses').value; 
-        if(code&&val) promoCodes.push({id:nextPromoId++,code,type,value:val,minSum,maxUses,usedCount:0}); 
-        renderPromoCodes(); calculateAndUpdate(); 
-    });
-    
-    document.getElementById('saveTemplateBtn')?.addEventListener('click', () => { renderPriceGrid(); alert('Сохранено'); calculateAndUpdate(); });
-    
-    function init() {
-        renderPriceGrid(); renderTemplateEditor(); renderSpecialPolicies(); renderScheduleList(); renderScenarios(); 
-        renderRoomCheckboxes(); updateRoomsList(); renderGroupPolicies(); renderPromoCodes(); 
-        updateBookingRoomSelect(); renderBookings(); calculateAndUpdate();
-    }
+    document.getElementById('confirmBookingBtn')?.addEventListener('click', () => { if(currentCalculation.valid){ if(currentCalculation.promoCode){ let promo=getPromoByCode(currentCalculation.promoCode); if(promo&&promo.maxUses>0) promo.usedCount++; renderPromoCodes(); } bookings.push(currentCalculation); renderBookings(); alert(`✅ Бронирование создано! Сумма: ${currentCalculation.finalPrice}₽`); calculateAndUpdate(); } });
+    document.getElementById('addPolicyBtn')?.addEventListener('click',()=>{let n=document.getElementById('policyName').value,d=document.getElementById('policyDate').value,p=+document.getElementById('policyPercent').value; if(n&&d&&p) specialPolicies.push({id:nextPolicyId++,name:n,dateExpr:d,percent:p}); renderSpecialPolicies(); renderPriceGrid(); calculateAndUpdate(); });
+    document.getElementById('addSegmentBtn')?.addEventListener('click',()=>{let n=document.getElementById('segmentName').value,r=document.getElementById('segmentRange').value; if(n&&r) schedules.push({id:nextScheduleId++,name:n,dateRangeStr:r,policyIds:[]}); renderScheduleList(); renderPriceGrid(); calculateAndUpdate(); });
+    document.getElementById('addScenarioBtn')?.addEventListener('click',()=>{let n=document.getElementById('scenarioName').value,dur=+document.getElementById('scenarioDuration').value,diff=+document.getElementById('scenarioDifficulty').value,pl=document.getElementById('scenarioPlayers').value,desc=document.getElementById('scenarioDescription').value,stat=document.getElementById('scenarioStatus').value; if(n&&dur&&diff) scenarios.push({id:nextScenarioId++,name:n,duration:dur,difficulty:diff,players:pl,description:desc,status:stat}); renderScenarios(); renderRoomCheckboxes(); updateRoomsList(); calculateAndUpdate(); });
+    document.getElementById('addRoomBtn')?.addEventListener('click',()=>{let n=document.getElementById('roomName').value; let ch=Array.from(document.querySelectorAll('#roomScenariosCheckboxContainer input:checked')).map(cb=>+cb.value); if(n) rooms.push({id:nextRoomId++,name:n,scenarioIds:ch}); updateRoomsList(); updateBookingRoomSelect(); calculateAndUpdate(); });
+    document.getElementById('addGroupPolicyBtn')?.addEventListener('click',()=>{let n=document.getElementById('groupPolicyName').value,min=+document.getElementById('groupMinGuests').value,max=+document.getElementById('groupMaxGuests').value,disc=+document.getElementById('groupDiscount').value; if(n&&min&&max&&disc) groupPolicies.push({id:nextGroupId++,name:n,minGuests:min,maxGuests:max,discount:disc}); renderGroupPolicies(); calculateAndUpdate(); });
+    document.getElementById('addPromoBtn')?.addEventListener('click',()=>{let c=document.getElementById('promoCode').value.toUpperCase(),t=document.getElementById('promoType').value,v=+document.getElementById('promoValue').value,ms=+document.getElementById('promoMinSum').value,mu=+document.getElementById('promoMaxUses').value; if(c&&v) promoCodes.push({id:nextPromoId++,code:c,type:t,value:v,minSum:ms,maxUses:mu,usedCount:0}); renderPromoCodes(); calculateAndUpdate(); });
+    document.getElementById('saveTemplateBtn')?.addEventListener('click',()=>{renderPriceGrid();alert('Шаблон сохранён');calculateAndUpdate();});
+
+    function init() { renderPriceGrid(); renderTemplateEditor(); renderSpecialPolicies(); renderScheduleList(); renderScenarios(); renderRoomCheckboxes(); updateRoomsList(); renderGroupPolicies(); renderPromoCodes(); updateBookingRoomSelect(); renderBookings(); calculateAndUpdate(); }
     init();
-    
-    // Табы
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active-pane'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById(btn.dataset.tab).classList.add('active-pane');
-        if (btn.dataset.tab === 'tab9') calculateAndUpdate();
-        if (btn.dataset.tab === 'tab1') renderPriceGrid();
-        if (btn.dataset.tab === 'tab2') renderTemplateEditor();
-    }));
+    document.querySelectorAll('.tab-btn').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active-pane'));document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.getElementById(btn.dataset.tab).classList.add('active-pane');if(btn.dataset.tab==='tab9')calculateAndUpdate();if(btn.dataset.tab==='tab1')renderPriceGrid();if(btn.dataset.tab==='tab2')renderTemplateEditor();}));
 </script>
 </body>
 </html>
